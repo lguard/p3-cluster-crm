@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3 Cluster CRM</title>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+:root {
+  --navy: #1A1A2E;
+  --navy2: #16213E;
+  --blue: #1D4ED8;
+  --green: #15803D;
+  --orange: #C05621;
+  --gray: #6B7280;
+  --border: #E5E7EB;
+  --bg: #F9FAFB;
+  --white: #FFFFFF;
+  --red: #B91C1C;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--navy); min-height: 100vh; }
+
+/* ── Login ─────────────────────────────────────────────── */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+}
+.login-card {
+  background: white; border-radius: 16px; padding: 48px 40px; width: 380px;
+  text-align: center; box-shadow: var(--shadow-lg);
+}
+.login-logo { font-size: 28px; font-weight: 800; color: var(--navy); letter-spacing: -1px; margin-bottom: 4px; }
+.login-logo span { color: var(--blue); }
+.login-subtitle { font-size: 13px; color: var(--gray); margin-bottom: 32px; }
+.login-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 12px 20px; background: white; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--navy);
+  transition: all 0.15s;
+}
+.login-btn:hover { background: var(--bg); border-color: #9CA3AF; box-shadow: var(--shadow); }
+.login-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.login-error { margin-top: 16px; padding: 10px 14px; background: #FEF2F2; border-radius: 8px; font-size: 12px; color: var(--red); display: none; }
+.login-note { margin-top: 20px; font-size: 11px; color: #9CA3AF; }
+
+/* ── Setup banner ───────────────────────────────────────── */
+#setup-banner {
+  background: #FEF3C7; border-bottom: 1px solid #FDE68A;
+  padding: 10px 24px; font-size: 12px; color: #92400E;
+  display: none; align-items: center; gap: 8px;
+}
+#setup-banner button {
+  margin-left: auto; background: #92400E; color: white; border: none;
+  border-radius: 6px; padding: 4px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+#app { display: none; min-height: 100vh; }
+.header {
+  background: var(--navy); color: white;
+  padding: 14px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 10;
+}
+.header-logo { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; flex-shrink: 0; }
+.header-logo span { color: #60A5FA; }
+.header-period {
+  font-size: 11px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px; padding: 3px 10px; color: #93C5FD; white-space: nowrap;
+}
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.user-info { text-align: right; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-email { font-size: 11px; color: #93C5FD; }
+.user-avatar {
+  width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);
+  background: var(--blue); display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; overflow: hidden; flex-shrink: 0;
+}
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.btn-signout {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  color: white; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap;
+}
+.btn-feedback {
+  background: #F59E0B; border: none; color: white;
+  padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+
+/* ── Summary cards ───────────────────────────────────────── */
+.summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 20px 24px 4px; }
+.card { background: white; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.card-label { font-size: 10px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.card-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.card-sub { font-size: 10px; color: #9CA3AF; margin-top: 2px; }
+.card.ht .card-value { color: var(--green); }
+.card.mt .card-value { color: var(--blue); }
+.card.lt .card-value { color: var(--gray); }
+.card.at .card-value { color: var(--orange); }
+.card.total .card-value { color: var(--navy); }
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.tabs { display: flex; padding: 16px 24px 0; border-bottom: 2px solid var(--border); }
+.tab {
+  padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border-radius: 8px 8px 0 0; border: 1px solid transparent; border-bottom: none;
+  color: var(--gray); background: transparent; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.tab:hover { background: #F3F4F6; }
+.tab.active { background: white; color: var(--navy); border-color: var(--border); border-bottom: 2px solid white; margin-bottom: -2px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-ht { background: var(--green); } .dot-mt { background: var(--blue); }
+.dot-lt { background: #9CA3AF; } .dot-at { background: #DD6B20; }
+.badge { min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.badge-ht { background: #DCFCE7; color: var(--green); } .badge-mt { background: #DBEAFE; color: var(--blue); }
+.badge-lt { background: #F3F4F6; color: var(--gray); } .badge-at { background: #FEF3C7; color: #B45309; }
+
+/* ── Panel / Table ───────────────────────────────────────── */
+.panel { display: none; padding: 20px 24px 32px; }
+.panel.active { display: block; }
+.panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.cluster-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
+.cluster-tag.ht { background: #DCFCE7; color: var(--green); }
+.cluster-tag.mt { background: #DBEAFE; color: var(--blue); }
+.cluster-tag.lt { background: #F3F4F6; color: var(--gray); }
+.cluster-tag.at { background: #FEF3C7; color: #B45309; }
+.cluster-rule { font-size: 12px; color: #9CA3AF; }
+
+.client-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.client-table thead th { background: #F9FAFB; font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+.client-table tbody tr { border-bottom: 1px solid #F3F4F6; transition: background 0.1s; cursor: pointer; }
+.client-table tbody tr:last-child { border-bottom: none; }
+.client-table tbody tr:hover { background: #F8FAFF; }
+.client-table td { padding: 10px 14px; font-size: 13px; vertical-align: middle; }
+.contacted-toggle {
+  width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border);
+  background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.contacted-toggle.on { background: var(--green); border-color: var(--green); }
+.contacted-toggle.on::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
+.phone-link { color: var(--blue); text-decoration: none; font-size: 12px; }
+.phone-link:hover { text-decoration: underline; }
+.btn-contact {
+  background: var(--navy); color: white; border: none; border-radius: 6px;
+  padding: 5px 12px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn-contact:hover { background: #2D3748; }
+.motivo-pill {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+}
+.motivo-dormant { background: #FEE2E2; color: var(--red); }
+.motivo-ht-mt { background: #FEF3C7; color: #92400E; }
+.motivo-mv { background: #FDE8D8; color: #9A3412; }
+
+/* ── Drawer ──────────────────────────────────────────────── */
+#drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40;
+  display: none; backdrop-filter: blur(2px);
+}
+#drawer {
+  position: fixed; right: 0; top: 0; bottom: 0; width: 420px; max-width: 100vw;
+  background: white; z-index: 50; display: flex; flex-direction: column;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.12); transform: translateX(100%); transition: transform 0.25s ease;
+}
+#drawer.open { transform: translateX(0); }
+.drawer-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
+.drawer-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.drawer-sub { font-size: 12px; color: var(--gray); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.drawer-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray); line-height: 1; }
+.drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+.drawer-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.info-item { background: #F9FAFB; border-radius: 8px; padding: 10px 12px; }
+.info-label { font-size: 10px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-bottom: 3px; }
+.info-value { font-size: 14px; font-weight: 600; }
+.info-value.mono { font-family: monospace; font-size: 12px; }
+.copy-btn { font-size: 10px; color: var(--blue); cursor: pointer; margin-left: 6px; }
+
+.form-section { display: flex; flex-direction: column; gap: 12px; }
+.form-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; display: block; }
+.form-select, .form-textarea, .form-input {
+  width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 13px; font-family: inherit; background: white; color: var(--navy);
+  transition: border-color 0.15s;
+}
+.form-select:focus, .form-textarea:focus, .form-input:focus { outline: none; border-color: var(--blue); }
+.form-textarea { min-height: 80px; resize: vertical; }
+.form-row { display: flex; align-items: center; gap: 10px; }
+.toggle-label { font-size: 13px; font-weight: 500; }
+
+.toggle {
+  position: relative; width: 40px; height: 22px; flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; background: #D1D5DB; border-radius: 22px; cursor: pointer; transition: 0.2s;
+}
+.toggle-slider:before {
+  content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px;
+  background: white; border-radius: 50%; transition: 0.2s;
+}
+.toggle input:checked + .toggle-slider { background: var(--green); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+.btn-primary {
+  width: 100%; padding: 10px; background: var(--navy); color: white; border: none;
+  border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+}
+.btn-primary:hover { background: #2D3748; }
+.btn-primary:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+.history-section { border-top: 1px solid var(--border); padding-top: 16px; }
+.history-title { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+.history-item { padding: 10px 12px; background: #F9FAFB; border-radius: 8px; margin-bottom: 8px; }
+.history-meta { font-size: 11px; color: var(--gray); }
+.history-text { font-size: 12px; margin-top: 4px; }
+
+/* ── Feedback Modal ───────────────────────────────────────── */
+#feedback-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 60;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+}
+.feedback-modal {
+  background: white; border-radius: 16px; padding: 28px; width: 460px; max-width: 96vw;
+  box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 16px;
+}
+.feedback-modal h2 { font-size: 17px; font-weight: 700; }
+.feedback-modal p { font-size: 13px; color: var(--gray); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-secondary {
+  padding: 8px 16px; background: white; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; color: var(--navy);
+}
+.btn-submit {
+  padding: 8px 20px; background: var(--navy); color: white; border: none;
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+
+/* ── Loading / toast ─────────────────────────────────────── */
+#loading-overlay {
+  position: fixed; inset: 0; background: rgba(249,250,251,0.9); z-index: 80;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+}
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--navy); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--gray); }
+
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 90;
+  background: var(--navy); color: white; padding: 12px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+  transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.error { background: var(--red); }
+#toast.success { background: #065F46; }
+
+.search-bar {
+  width: 100%; padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 13px; margin-bottom: 14px; background: white;
+}
+.search-bar:focus { outline: none; border-color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- ── Login Screen ───────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">P<span>3</span> Cluster</div>
+    <div class="login-subtitle">CRM interno — Portão 3</div>
+    <button class="login-btn" onclick="signIn()">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Entrar com Google
+    </button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-note">Acesso restrito a contas @portao3.com.br</div>
+  </div>
+</div>
+
+<!-- ── Setup Banner ────────────────────────────────────────── -->
+<div id="setup-banner">
+  ⚠️ <strong>Log Sheet não configurada.</strong> Clique para criar a planilha de log automaticamente.
+  <button onclick="createLogSheet()">Criar agora</button>
+</div>
+
+<!-- ── Main App ────────────────────────────────────────────── -->
+<div id="app">
+  <div class="header">
+    <div class="header-logo">P<span>3</span> Cluster CRM</div>
+    <div class="header-period" id="period-label">📅 —</div>
+    <div class="header-right">
+      <button class="btn-feedback" onclick="openFeedback()">💬 Feedback</button>
+      <div class="user-info">
+        <div class="user-name" id="user-name">—</div>
+        <div class="user-email" id="user-email">—</div>
+      </div>
+      <div class="user-avatar" id="user-avatar"></div>
+      <button class="btn-signout" onclick="signOut()">Sair</button>
+    </div>
+  </div>
+
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Carregando clusters…</div>
+  </div>
+
+  <div id="main-content" style="display:none">
+    <div class="summary">
+      <div class="card ht"><div class="card-label">High Touch</div><div class="card-value" id="s-ht-n">—</div><div class="card-sub" id="s-ht-g">—</div></div>
+      <div class="card mt"><div class="card-label">Mid Touch</div><div class="card-value" id="s-mt-n">—</div><div class="card-sub" id="s-mt-g">—</div></div>
+      <div class="card lt"><div class="card-label">Low Touch</div><div class="card-value" id="s-lt-n">—</div><div class="card-sub" id="s-lt-g">—</div></div>
+      <div class="card at"><div class="card-label">⚠ Atenção</div><div class="card-value" id="s-at-n">—</div><div class="card-sub" id="s-at-g">—</div></div>
+      <div class="card total"><div class="card-label">GTV Total (6m)</div><div class="card-value" id="s-total-g">—</div><div class="card-sub">High + Mid + Low</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('ht')"><span class="dot dot-ht"></span>High Touch<span class="badge badge-ht" id="t-ht">—</span></div>
+      <div class="tab" onclick="switchTab('mt')"><span class="dot dot-mt"></span>Mid Touch<span class="badge badge-mt" id="t-mt">—</span></div>
+      <div class="tab" onclick="switchTab('lt')"><span class="dot dot-lt"></span>Low Touch<span class="badge badge-lt" id="t-lt">—</span></div>
+      <div class="tab" onclick="switchTab('at')"><span class="dot dot-at"></span>⚠ Atenção<span class="badge badge-at" id="t-at">—</span></div>
+    </div>
+
+    <div class="panel active" id="panel-ht">
+      <div class="panel-header"><span class="cluster-tag ht">● High Touch</span><span class="cluster-rule">Todos os meses ≥ R$ 100.000 · Excluindo bloqueados Swap</span></div>
+      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('ht', this.value)">
+      <table class="client-table" id="table-ht"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="panel" id="panel-mt">
+      <div class="panel-header"><span class="cluster-tag mt">● Mid Touch</span><span class="cluster-rule">Todos os meses entre R$ 50.000 e R$ 100.000</span></div>
+      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('mt', this.value)">
+      <table class="client-table" id="table-mt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="panel" id="panel-lt">
+      <div class="panel-header"><span class="cluster-tag lt">● Low Touch</span><span class="cluster-rule">Perenes em todos os meses · Média &lt; R$ 50.000</span></div>
+      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('lt', this.value)">
+      <table class="client-table" id="table-lt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="panel" id="panel-at">
+      <div class="panel-header"><span class="cluster-tag at">⚠ Atenção</span><span class="cluster-rule">Degradação de cluster ou adormecimento nos últimos 30 dias</span></div>
+      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('at', this.value)">
+      <table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ── Contact Drawer ──────────────────────────────────────── -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <div class="drawer-header">
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+    <div class="drawer-title" id="d-name">—</div>
+    <div class="drawer-sub">
+      <span class="cluster-tag" id="d-cluster-tag">—</span>
+      <span id="d-motivo" style="display:none"></span>
+    </div>
+  </div>
+  <div class="drawer-body">
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label">Realm ID</div>
+        <div class="info-value mono" id="d-realm-id">—<span class="copy-btn" onclick="copyRealmId()">copiar</span></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Telefone</div>
+        <div class="info-value"><a class="phone-link" id="d-phone" href="#">—</a></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">GTV Médio/mês</div>
+        <div class="info-value" id="d-avg">—</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Total 6 meses</div>
+        <div class="info-value" id="d-total">—</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div>
+        <label class="form-label">Tipo de contato</label>
+        <select class="form-select" id="d-type">
+          <option value="call">📞 Ligação</option>
+          <option value="whatsapp">💬 WhatsApp</option>
+          <option value="email">✉️ E-mail</option>
+          <option value="meeting">🤝 Reunião</option>
+          <option value="other">Outro</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Notas do contato</label>
+        <textarea class="form-textarea" id="d-notes" placeholder="O que foi discutido, próximos passos…"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="toggle">
+          <input type="checkbox" id="d-contacted-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">Marcar como <strong>contactado este mês</strong></span>
+      </div>
+    </div>
+
+    <div class="history-section">
+      <div class="history-title">Histórico de contatos</div>
+      <div id="d-history"><div style="font-size:12px;color:#9CA3AF">Carregando histórico…</div></div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn-primary" onclick="saveContact()" id="d-save-btn">Salvar registro</button>
+  </div>
+</div>
+
+<!-- ── Feedback Modal ──────────────────────────────────────── -->
+<div id="feedback-overlay">
+  <div class="feedback-modal">
+    <h2>💬 Feedback & Solicitações</h2>
+    <p>Compartilhe sugestões de melhoria, bugs ou novas funcionalidades para o CRM.</p>
+    <div>
+      <label class="form-label">Categoria</label>
+      <select class="form-select" id="fb-category">
+        <option value="feature">🚀 Nova funcionalidade</option>
+        <option value="improvement">✨ Melhoria</option>
+        <option value="bug">🐛 Bug</option>
+        <option value="other">Outro</option>
+      </select>
+    </div>
+    <div>
+      <label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="fb-text" placeholder="Descreva sua sugestão ou problema…" style="min-height:120px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeFeedback()">Cancelar</button>
+      <button class="btn-submit" onclick="submitFeedback()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG — edite os valores abaixo conforme necessário
+// ══════════════════════════════════════════════════════════
+const CONFIG = {
+  GOOGLE_CLIENT_ID: '309946949026-jjii91uevgct1c2ulitgros0jm4mpg51.apps.googleusercontent.com',
+  ALLOWED_DOMAIN:   'portao3.com.br',
+  BQ_PROJECT:       'p3-data-lake',
+  // Após criar a Log Sheet (botão no banner amarelo), cole o ID aqui:
+  SHEET_ID: localStorage.getItem('p3_sheet_id') || '',
+};
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+const state = {
+  accessToken: null,
+  user: null,
+  clients: [],         // all rows from BQ
+  contactedThisMonth: new Set(), // realmIds contacted this month (from sheet)
+  drawerClient: null,
+  currentTab: 'ht',
+  monthRef: new Date().toISOString().slice(0, 7), // e.g. '2026-06'
+};
+
+// ══════════════════════════════════════════════════════════
+// GOOGLE AUTH
+// ══════════════════════════════════════════════════════════
+let tokenClient;
+
+window.onload = () => {
+  if (typeof google === 'undefined') {
+    // GIS not loaded yet — retry
+    setTimeout(() => window.onload(), 500);
+    return;
+  }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    scope: [
+      'https://www.googleapis.com/auth/bigquery.readonly',
+      'https://www.googleapis.com/auth/spreadsheets',
+      'openid email profile'
+    ].join(' '),
+    hosted_domain: CONFIG.ALLOWED_DOMAIN,
+    callback: handleToken,
+  });
+};
+
+function signIn() {
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+async function handleToken(resp) {
+  if (resp.error) { showLoginError('Erro de autenticação: ' + resp.error); return; }
+  state.accessToken = resp.access_token;
+
+  // Verify user info + domain
+  try {
+    const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${state.accessToken}` }
+    }).then(r => r.json());
+
+    if (!info.email?.endsWith('@' + CONFIG.ALLOWED_DOMAIN)) {
+      state.accessToken = null;
+      showLoginError(`Acesso permitido apenas para @${CONFIG.ALLOWED_DOMAIN}`);
+      return;
+    }
+    state.user = info;
+    showApp();
+  } catch(e) { showLoginError('Não foi possível verificar o usuário.'); }
+}
+
+function signOut() {
+  google.accounts.oauth2.revoke(state.accessToken);
+  state.accessToken = null;
+  state.user = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════
+// APP INIT
+// ══════════════════════════════════════════════════════════
+async function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  // User info
+  document.getElementById('user-name').textContent = state.user.name || '';
+  document.getElementById('user-email').textContent = state.user.email || '';
+  const av = document.getElementById('user-avatar');
+  if (state.user.picture) av.innerHTML = `<img src="${state.user.picture}">`;
+  else av.textContent = (state.user.name||'U')[0].toUpperCase();
+
+  // Sheet setup
+  if (!CONFIG.SHEET_ID) {
+    document.getElementById('setup-banner').style.display = 'flex';
+  } else {
+    await loadContactedThisMonth();
+  }
+
+  // Load BQ data
+  document.getElementById('loading-overlay').style.display = 'flex';
+  document.getElementById('loading-text').textContent = 'Buscando clusters no BigQuery…';
+  await loadClusters();
+  document.getElementById('loading-overlay').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════
+// BIGQUERY
+// ══════════════════════════════════════════════════════════
+const BQ_QUERY = `
+WITH params AS (
+  SELECT
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH), MONTH) AS window_start,
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 3 MONTH), MONTH) AS mid_point,
+    DATE_TRUNC(CURRENT_DATE(), MONTH)                              AS window_end,
+    DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)                     AS dormant_cutoff
+),
+blocked AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status='REPROVED'),
+phones AS (SELECT realmId, ANY_VALUE(phoneNumber) AS phone FROM \`p3-data-lake.consolidado.accounts\` WHERE phoneNumber IS NOT NULL AND status!='REPROVED' GROUP BY 1),
+monthly_6m AS (
+  SELECT t.realmId, t.realmName, FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,
+    ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv
+  FROM \`p3-data-lake.consolidado.transactions\` t, params p
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
+    AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end
+    AND t.realmId NOT IN (SELECT realmId FROM blocked)
+  GROUP BY 1,2,3
+),
+recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t, params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN(SELECT realmId FROM blocked)),
+rn AS (SELECT realmId, ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
+s6 AS (SELECT realmId, COUNT(*) AS ma, ROUND(AVG(gtv),0) AS avg_g, ROUND(MIN(gtv),0) AS min_g, ROUND(MAX(gtv),0) AS max_g, ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
+h1 AS (SELECT m.realmId, COUNT(*) AS ma, ROUND(MIN(m.gtv),0) AS min_g, ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m, params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+h2 AS (SELECT m.realmId, COUNT(*) AS ma, ROUND(MIN(m.gtv),0) AS min_g, ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m, params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+wi AS (SELECT DATE_DIFF(window_end,window_start,MONTH) AS total_months FROM params),
+mc AS (
+  SELECT rn.realmName, s.realmId, s.ma AS months_active, wi.total_months,
+    s.avg_g AS avg_monthly_gtv, s.min_g AS min_monthly_gtv, s.max_g AS max_monthly_gtv, s.tot_g AS total_gtv_6m,
+    CASE WHEN s.min_g>=100000 THEN 'High Touch' WHEN s.min_g>=50000 THEN 'Mid Touch' WHEN s.ma=wi.total_months THEN 'Low Touch' END AS cluster,
+    CAST(NULL AS STRING) AS motivo, CAST(NULL AS FLOAT64) AS avg_h1, CAST(NULL AS FLOAT64) AS avg_h2
+  FROM s6 s JOIN rn USING(realmId) CROSS JOIN wi
+  WHERE s.min_g>=50000 OR s.ma=wi.total_months
+),
+ar AS (
+  SELECT rn.realmName, h1.realmId,
+    COALESCE(s6.ma,h1.ma) AS months_active, wi.total_months,
+    COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv, COALESCE(s6.min_g,h1.min_g) AS min_monthly_gtv,
+    COALESCE(s6.max_g,h1.avg_g) AS max_monthly_gtv, COALESCE(s6.tot_g,h1.avg_g*h1.ma) AS total_gtv_6m,
+    'Atenção' AS cluster,
+    CASE
+      WHEN ra.realmId IS NULL AND h1.min_g>=100000 THEN 'Adormecido — era High Touch'
+      WHEN ra.realmId IS NULL AND h1.min_g>=50000  THEN 'Adormecido — era Mid Touch'
+      WHEN h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000 AND h2.min_g>=50000 THEN 'High Touch → Mid Touch'
+      WHEN h1.min_g>=100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'High Touch → Low Touch'
+      WHEN h1.min_g>=50000 AND h1.min_g<100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'Mid Touch → Low Touch'
+    END AS motivo,
+    h1.avg_g AS avg_h1, COALESCE(h2.avg_g,0) AS avg_h2
+  FROM h1 CROSS JOIN wi JOIN rn USING(realmId)
+  LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId) LEFT JOIN recent_active ra ON ra.realmId=h1.realmId
+  WHERE h1.min_g>=50000 AND (ra.realmId IS NULL OR (h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR (h1.min_g>=50000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
+)
+SELECT mc.realmName,mc.realmId,mc.months_active,mc.total_months,mc.avg_monthly_gtv,mc.min_monthly_gtv,mc.max_monthly_gtv,mc.total_gtv_6m,mc.cluster,mc.motivo,mc.avg_h1,mc.avg_h2,p.phone FROM mc LEFT JOIN phones p USING(realmId) WHERE mc.cluster IS NOT NULL
+UNION ALL
+SELECT ar.realmName,ar.realmId,ar.months_active,ar.total_months,ar.avg_monthly_gtv,ar.min_monthly_gtv,ar.max_monthly_gtv,ar.total_gtv_6m,ar.cluster,ar.motivo,ar.avg_h1,ar.avg_h2,p.phone FROM ar LEFT JOIN phones p USING(realmId) WHERE ar.motivo IS NOT NULL
+ORDER BY cluster, total_gtv_6m DESC`;
+
+async function bqQuery(sql) {
+  const r = await fetch(
+    `https://bigquery.googleapis.com/bigquery/v2/projects/${CONFIG.BQ_PROJECT}/queries`,
+    { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'},
+      body: JSON.stringify({ query: sql, useLegacySql: false, timeoutMs: 55000 }) }
+  );
+  const data = await r.json();
+  if (data.error) throw new Error(data.error.message);
+  if (!data.jobComplete) {
+    // Poll for results
+    return await pollBQJob(data.jobReference);
+  }
+  return parseBQResult(data);
+}
+
+async function pollBQJob(jobRef) {
+  for (let i = 0; i < 30; i++) {
+    await new Promise(res => setTimeout(res, 2000));
+    const r = await fetch(
+      `https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/jobs/${jobRef.jobId}`,
+      { headers: { 'Authorization': `Bearer ${state.accessToken}` } }
+    );
+    const data = await r.json();
+    if (data.status?.state === 'DONE') {
+      const qr = await fetch(
+        `https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/queries/${jobRef.jobId}`,
+        { headers: { 'Authorization': `Bearer ${state.accessToken}` } }
+      ).then(r => r.json());
+      return parseBQResult(qr);
+    }
+  }
+  throw new Error('Query timeout');
+}
+
+function parseBQResult(data) {
+  const schema = (data.schema?.fields || []).map(f => f.name);
+  return (data.rows || []).map(row => {
+    const obj = {};
+    row.f.forEach((cell, i) => { obj[schema[i]] = cell.v; });
+    return obj;
+  });
+}
+
+async function loadClusters() {
+  try {
+    state.clients = await bqQuery(BQ_QUERY);
+    renderAll();
+  } catch(e) {
+    showToast('Erro ao carregar dados: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// GOOGLE SHEETS (persistence)
+// ══════════════════════════════════════════════════════════
+async function createLogSheet() {
+  document.getElementById('setup-banner').querySelector('button').textContent = 'Criando…';
+  try {
+    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        properties: { title: `P3 CRM — Cluster Log` },
+        sheets: [
+          { properties: { title: 'Contacts' } },
+          { properties: { title: 'Feedback' } }
+        ]
+      })
+    }).then(r => r.json());
+
+    CONFIG.SHEET_ID = r.spreadsheetId;
+    localStorage.setItem('p3_sheet_id', CONFIG.SHEET_ID);
+
+    // Add headers
+    await sheetsAppend('Contacts', [['Timestamp','RealmId','RealmName','Cluster','ContatadoPor','Email','TipoContato','Notas','MesRef']]);
+    await sheetsAppend('Feedback', [['Timestamp','SubmitPor','Email','Categoria','Texto']]);
+
+    document.getElementById('setup-banner').style.display = 'none';
+    showToast('✅ Log Sheet criada! ID: ' + CONFIG.SHEET_ID, 'success');
+    await loadContactedThisMonth();
+  } catch(e) {
+    showToast('Erro ao criar sheet: ' + e.message, 'error');
+    document.getElementById('setup-banner').querySelector('button').textContent = 'Criar agora';
+  }
+}
+
+async function sheetsAppend(sheetName, values) {
+  await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheetName)}!A1:append?valueInputOption=USER_ENTERED`,
+    { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'},
+      body: JSON.stringify({ values }) }
+  );
+}
+
+async function sheetsRead(sheetName, range) {
+  const r = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheetName)}!${range}`,
+    { headers: { 'Authorization': `Bearer ${state.accessToken}` } }
+  ).then(r => r.json());
+  return r.values || [];
+}
+
+async function loadContactedThisMonth() {
+  if (!CONFIG.SHEET_ID) return;
+  try {
+    const rows = await sheetsRead('Contacts', 'A2:I5000');
+    state.contactedThisMonth = new Set(
+      rows.filter(r => r[8] === state.monthRef).map(r => r[1])
+    );
+  } catch(e) { /* sheet might be empty */ }
+}
+
+// ══════════════════════════════════════════════════════════
+// UI RENDERING
+// ══════════════════════════════════════════════════════════
+function fmt(val) {
+  const n = parseFloat(val) || 0;
+  if (n >= 1e6) return 'R$ ' + (n/1e6).toFixed(1).replace('.',',') + 'M';
+  if (n >= 1e3) return 'R$ ' + (n/1e3).toFixed(0) + 'K';
+  return 'R$ ' + n.toFixed(0);
+}
+function fmtPhone(p) {
+  if (!p) return '—';
+  return p.replace('+55','').replace(/(\d{2})(\d{4,5})(\d{4})/,'($1) $2-$3').trim();
+}
+
+function renderAll() {
+  const ht = state.clients.filter(c => c.cluster === 'High Touch');
+  const mt = state.clients.filter(c => c.cluster === 'Mid Touch');
+  const lt = state.clients.filter(c => c.cluster === 'Low Touch');
+  const at = state.clients.filter(c => c.cluster === 'Atenção');
+
+  const totalGTV = [...ht,...mt,...lt].reduce((s,r) => s+(parseFloat(r.total_gtv_6m)||0), 0);
+
+  // Summary
+  document.getElementById('s-ht-n').textContent = ht.length;
+  document.getElementById('s-mt-n').textContent = mt.length;
+  document.getElementById('s-lt-n').textContent = lt.length;
+  document.getElementById('s-at-n').textContent = at.length;
+  document.getElementById('s-ht-g').textContent = fmt(ht.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0)) + ' em 6m';
+  document.getElementById('s-mt-g').textContent = fmt(mt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0)) + ' em 6m';
+  document.getElementById('s-lt-g').textContent = fmt(lt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0)) + ' em 6m';
+  document.getElementById('s-at-g').textContent = at.length + ' cliente' + (at.length!==1?'s':'') + ' em risco';
+  document.getElementById('s-total-g').textContent = fmt(totalGTV);
+
+  // Tab badges
+  document.getElementById('t-ht').textContent = ht.length;
+  document.getElementById('t-mt').textContent = mt.length;
+  document.getElementById('t-lt').textContent = lt.length;
+  document.getElementById('t-at').textContent = at.length;
+
+  // Period label
+  const now = new Date();
+  const m6 = new Date(now); m6.setMonth(now.getMonth()-6);
+  document.getElementById('period-label').textContent =
+    `📅 ${m6.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})} – ${new Date(now.getFullYear(),now.getMonth()-1).toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}`;
+
+  renderTable('ht', ht);
+  renderTable('mt', mt);
+  renderTable('lt', lt);
+  renderTableAt('at', at);
+}
+
+function renderTable(tab, rows) {
+  const tbody = document.querySelector(`#table-${tab} tbody`);
+  tbody.innerHTML = '';
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:24px">Nenhum cliente neste cluster.</td></tr>'; return; }
+  rows.forEach((r, i) => {
+    const isContacted = state.contactedThisMonth.has(r.realmId);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${r.realmName}</strong><br><span style="font-size:11px;color:#9CA3AF">${r.realmId.slice(0,8)}…</span></td>
+      <td><a class="phone-link" href="tel:${r.phone||''}">${fmtPhone(r.phone)}</a></td>
+      <td>${fmt(r.avg_monthly_gtv)}</td>
+      <td style="font-weight:600">${fmt(r.total_gtv_6m)}</td>
+      <td style="font-size:12px;color:#6B7280">${r.months_active}/${r.total_months}</td>
+      <td>
+        <div class="contacted-toggle ${isContacted?'on':''}" id="toggle-${r.realmId.slice(0,8)}"
+             onclick="quickToggle('${r.realmId}', this)" title="${isContacted?'Contactado este mês':'Marcar como contactado'}"></div>
+      </td>
+      <td><button class="btn-contact" onclick="openDrawer('${r.realmId}')">Contato →</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderTableAt(tab, rows) {
+  const tbody = document.querySelector(`#table-${tab} tbody`);
+  tbody.innerHTML = '';
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:24px">🎉 Nenhum cliente em estado de atenção.</td></tr>'; return; }
+  rows.forEach(r => {
+    const isContacted = state.contactedThisMonth.has(r.realmId);
+    const motivo = r.motivo || '';
+    let pillClass = 'motivo-mv';
+    if (motivo.includes('Adormecido')) pillClass = 'motivo-dormant';
+    else if (motivo.includes('→ Mid')) pillClass = 'motivo-ht-mt';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${r.realmName}</strong><br><span style="font-size:11px;color:#9CA3AF">${r.realmId.slice(0,8)}…</span></td>
+      <td><a class="phone-link" href="tel:${r.phone||''}">${fmtPhone(r.phone)}</a></td>
+      <td><span class="motivo-pill ${pillClass}">${motivo}</span></td>
+      <td>${r.avg_h1 ? fmt(r.avg_h1) : '—'}</td>
+      <td>${r.avg_h2 > 0 ? fmt(r.avg_h2) : '—'}</td>
+      <td>
+        <div class="contacted-toggle ${isContacted?'on':''}" id="toggle-${r.realmId.slice(0,8)}"
+             onclick="quickToggle('${r.realmId}', this)"></div>
+      </td>
+      <td><button class="btn-contact" onclick="openDrawer('${r.realmId}')">Contato →</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterTable(tab, q) {
+  const rows = document.querySelectorAll(`#table-${tab} tbody tr`);
+  rows.forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['ht','mt','lt','at'][i]===tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════
+// CONTACT DRAWER
+// ══════════════════════════════════════════════════════════
+function openDrawer(realmId) {
+  const client = state.clients.find(c => c.realmId === realmId);
+  if (!client) return;
+  state.drawerClient = client;
+
+  document.getElementById('d-name').textContent = client.realmName;
+  document.getElementById('d-realm-id').childNodes[0].textContent = client.realmId.slice(0,18) + '…';
+  document.getElementById('d-realm-id').dataset.full = client.realmId;
+
+  const phoneEl = document.getElementById('d-phone');
+  phoneEl.textContent = fmtPhone(client.phone);
+  phoneEl.href = client.phone ? `tel:${client.phone}` : '#';
+
+  document.getElementById('d-avg').textContent = fmt(client.avg_monthly_gtv);
+  document.getElementById('d-total').textContent = fmt(client.total_gtv_6m);
+  document.getElementById('d-notes').value = '';
+  document.getElementById('d-type').value = 'call';
+
+  const isContacted = state.contactedThisMonth.has(realmId);
+  document.getElementById('d-contacted-toggle').checked = isContacted;
+
+  // Cluster tag
+  const tagEl = document.getElementById('d-cluster-tag');
+  tagEl.textContent = client.cluster;
+  tagEl.className = 'cluster-tag ' + { 'High Touch':'ht','Mid Touch':'mt','Low Touch':'lt','Atenção':'at' }[client.cluster];
+
+  // Motivo (Atenção)
+  const mEl = document.getElementById('d-motivo');
+  if (client.motivo) { mEl.textContent = client.motivo; mEl.style.display = 'inline'; }
+  else { mEl.style.display = 'none'; }
+
+  // History
+  loadHistory(realmId);
+
+  document.getElementById('drawer-overlay').style.display = 'block';
+  setTimeout(() => document.getElementById('drawer').classList.add('open'), 10);
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').style.display = 'none';
+  state.drawerClient = null;
+}
+
+async function loadHistory(realmId) {
+  const el = document.getElementById('d-history');
+  if (!CONFIG.SHEET_ID) { el.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Log Sheet não configurada.</div>'; return; }
+  try {
+    const rows = await sheetsRead('Contacts', 'A2:I5000');
+    const clientRows = rows.filter(r => r[1] === realmId).reverse().slice(0, 10);
+    if (!clientRows.length) { el.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Nenhum contato registrado.</div>'; return; }
+    el.innerHTML = clientRows.map(r => `
+      <div class="history-item">
+        <div class="history-meta">${r[0]} · <strong>${r[4]}</strong> · ${r[6]} · ${r[8]}</div>
+        <div class="history-text">${r[7] || '—'}</div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Erro ao carregar histórico.</div>'; }
+}
+
+async function saveContact() {
+  const client = state.drawerClient;
+  if (!client) return;
+
+  const btn = document.getElementById('d-save-btn');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+
+  const contactType = document.getElementById('d-type').value;
+  const notes       = document.getElementById('d-notes').value.trim();
+  const isContacted = document.getElementById('d-contacted-toggle').checked;
+  const ts          = new Date().toLocaleString('pt-BR');
+
+  if (CONFIG.SHEET_ID) {
+    try {
+      await sheetsAppend('Contacts', [[
+        ts, client.realmId, client.realmName, client.cluster,
+        state.user.name, state.user.email,
+        contactType, notes, isContacted ? state.monthRef : ''
+      ]]);
+    } catch(e) { showToast('Erro ao salvar no Sheets: ' + e.message, 'error'); }
+  }
+
+  // Update in-memory state
+  if (isContacted) {
+    state.contactedThisMonth.add(client.realmId);
+    const tEl = document.getElementById('toggle-' + client.realmId.slice(0,8));
+    if (tEl) tEl.classList.add('on');
+  }
+
+  btn.disabled = false; btn.textContent = 'Salvar registro';
+  showToast('✅ Contato registrado!', 'success');
+  loadHistory(client.realmId);
+}
+
+async function quickToggle(realmId, el) {
+  const client = state.clients.find(c => c.realmId === realmId);
+  if (!client) return;
+  const wasOn = el.classList.contains('on');
+  el.classList.toggle('on');
+
+  if (CONFIG.SHEET_ID) {
+    const ts = new Date().toLocaleString('pt-BR');
+    await sheetsAppend('Contacts', [[
+      ts, realmId, client.realmName, client.cluster,
+      state.user.name, state.user.email,
+      'quick-toggle', wasOn ? '(desmarcado)' : '(marcado)',
+      wasOn ? '' : state.monthRef
+    ]]);
+  }
+  if (!wasOn) state.contactedThisMonth.add(realmId);
+  else state.contactedThisMonth.delete(realmId);
+  showToast(wasOn ? 'Desmarcado' : '✅ Marcado como contactado', 'success');
+}
+
+function copyRealmId() {
+  const id = document.getElementById('d-realm-id').dataset.full;
+  navigator.clipboard.writeText(id).then(() => showToast('Realm ID copiado!', 'success'));
+}
+
+// ══════════════════════════════════════════════════════════
+// FEEDBACK
+// ══════════════════════════════════════════════════════════
+function openFeedback() { document.getElementById('feedback-overlay').style.display = 'flex'; }
+function closeFeedback() { document.getElementById('feedback-overlay').style.display = 'none'; }
+
+async function submitFeedback() {
+  const category = document.getElementById('fb-category').value;
+  const text     = document.getElementById('fb-text').value.trim();
+  if (!text) { showToast('Escreva o feedback antes de enviar.', 'error'); return; }
+
+  if (CONFIG.SHEET_ID) {
+    try {
+      await sheetsAppend('Feedback', [[
+        new Date().toLocaleString('pt-BR'),
+        state.user.name, state.user.email, category, text
+      ]]);
+    } catch(e) { showToast('Erro ao enviar feedback.', 'error'); return; }
+  }
+  document.getElementById('fb-text').value = '';
+  closeFeedback();
+  showToast('💬 Feedback enviado, obrigado!', 'success');
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + (type||'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3500);
+}
+</script>
+</body>
+</html>
