@@ -330,52 +330,62 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .history-meta { font-size: 10px; color: var(--text-2); font-weight: 500; }
 .history-text { font-size: 12px; margin-top: 3px; color: var(--text); }
 
-/* ─── KANBAN ─────────────────────────────────────────────── */
-.kanban-top { padding: 0 28px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.kanban-info { font-size: 12px; color: var(--text-2); font-weight: 500; }
-.kanban-refresh { background: var(--p3-bg); border: 1.5px solid var(--border); color: var(--p3); border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font); }
-.kanban-refresh:hover { background: var(--p3-pale); }
-.kanban-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 0 28px 14px; }
-.kleg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-2); font-weight: 500; }
-.kleg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-.kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 0 28px 32px; }
-.kanban-col { background: var(--white); border-radius: 16px; padding: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-.kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.kanban-col-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-2); }
-.kc-count { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
-.col-0 .kanban-col-title { color: var(--p3-dark); } .col-0 .kc-count { background: var(--p3-pale); color: var(--p3-dark); }
-.col-1 .kc-count { background: #DBEAFE; color: #1E40AF; }
-.col-2 .kc-count { background: #FEF3C7; color: #92400E; }
-.col-3 .kc-count { background: #DCFCE7; color: #15803D; }
-.kanban-col-body { display: flex; flex-direction: column; gap: 8px; min-height: 80px; }
-.kanban-col-body.drag-over { background: var(--p3-pale); border-radius: 10px; outline: 2px dashed var(--p3-light); }
-.kcard {
-  background: var(--p3-bg); border-radius: 12px; padding: 12px 14px;
-  border: 1px solid var(--border); cursor: grab; transition: all 0.15s; user-select: none;
+/* ─── TASKS ──────────────────────────────────────────────── */
+.tasks-top { padding: 0 28px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tasks-info { font-size: 12px; color: var(--text-2); font-weight: 500; flex: 1; }
+.tasks-refresh { background: var(--p3-bg); border: 1.5px solid var(--border); color: var(--p3); border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+.tasks-refresh:hover { background: var(--p3-pale); }
+.tasks-section { padding: 0 28px 8px; }
+.tasks-section-hdr {
+  display: flex; align-items: center; gap: 10px; padding: 14px 0 10px;
+  border-bottom: 2px solid var(--border); margin-bottom: 8px;
+}
+.tasks-hdr-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.tasks-hdr-title { font-size: 12px; font-weight: 800; color: var(--text); }
+.tasks-hdr-count { background: var(--p3-bg); border: 1px solid var(--border); padding: 2px 10px; border-radius: 20px; font-size: 10px; color: var(--text-2); font-weight: 700; }
+.task-item {
+  display: grid;
+  grid-template-columns: 30px 1fr auto auto auto auto;
+  align-items: center; gap: 14px;
+  padding: 13px 16px; background: white; border-radius: 12px;
+  border: 1px solid var(--border); margin-bottom: 6px;
+  box-shadow: var(--shadow-sm); transition: all 0.15s;
   border-left: 3px solid transparent;
 }
-.kcard:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
-.kcard.dragging { opacity: 0.4; transform: scale(0.97); cursor: grabbing; }
-.kcard.p1 { border-left-color: #DC2626; }
-.kcard.p2 { border-left-color: #7C3AED; }
-.kcard.p3 { border-left-color: #D97706; }
-.kcard.p4 { border-left-color: #2563EB; }
-.kcard.p5 { border-left-color: #9CA3AF; }
-.kcard-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 5px; line-height: 1.3; }
-.kcard-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; display: inline-block; margin-bottom: 6px; }
-.kcard-badge.p1 { background: #FEE2E2; color: #991B1B; }
-.kcard-badge.p2 { background: #EDE9FE; color: #5B21B6; }
-.kcard-badge.p3 { background: #FEF3C7; color: #92400E; }
-.kcard-badge.p4 { background: #DBEAFE; color: #1E40AF; }
-.kcard-badge.p5 { background: #F3F4F6; color: #374151; }
-.kcard-gtv { font-size: 13px; font-weight: 800; color: var(--p3-dark); margin-bottom: 8px; }
-.kcard-gtv-sub { font-size: 10px; color: var(--text-2); font-weight: 500; }
-.kcard-footer { display: flex; align-items: center; gap: 6px; }
-.kcard-phone { font-size: 11px; color: var(--p3); text-decoration: none; font-weight: 600; flex: 1; }
-.kcard-phone:hover { text-decoration: underline; }
-.kcard-reg { background: var(--p3); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 10px; font-weight: 700; cursor: pointer; font-family: var(--font); white-space: nowrap; }
-.kcard-reg:hover { background: var(--p3-dark); }
-.kanban-empty { font-size: 12px; color: var(--text-2); text-align: center; padding: 20px 0; font-weight: 500; }
+.task-item:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.task-item.ts-done { opacity: 0.45; }
+.task-item.tp1 { border-left-color: #DC2626; }
+.task-item.tp2 { border-left-color: #7C3AED; }
+.task-item.tp3 { border-left-color: #D97706; }
+.task-item.tp4 { border-left-color: #2563EB; }
+.task-item.tp5 { border-left-color: #9CA3AF; }
+.task-rank { font-size: 12px; font-weight: 800; color: var(--text-2); text-align: center; }
+.task-info { min-width: 0; }
+.task-company { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task-contact { font-size: 11px; color: var(--text-2); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.task-gtv-col { text-align: right; white-space: nowrap; }
+.task-gtv-val { font-size: 14px; font-weight: 800; color: var(--p3-dark); }
+.task-gtv-sub { font-size: 10px; color: var(--text-2); }
+.task-motivo { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.tm-p1 { background: #FEE2E2; color: #991B1B; }
+.tm-p2 { background: #EDE9FE; color: #5B21B6; }
+.tm-p3 { background: #FEF3C7; color: #92400E; }
+.tm-p4 { background: #DBEAFE; color: #1E40AF; }
+.tm-p5 { background: #F3F4F6; color: #374151; }
+.task-status-btn {
+  padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  border: none; cursor: pointer; font-family: var(--font); white-space: nowrap; transition: all 0.15s;
+}
+.tst-0 { background: #F3F4F6; color: #374151; }
+.tst-1 { background: #DBEAFE; color: #1E40AF; }
+.tst-2 { background: #FEF3C7; color: #92400E; }
+.tst-3 { background: #DCFCE7; color: #15803D; }
+.task-reg { background: var(--p3); color: white; border: none; border-radius: 8px; padding: 6px 14px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+.task-reg:hover { background: var(--p3-dark); }
+.tasks-empty { font-size: 12px; color: var(--text-2); text-align: center; padding: 24px 0; font-weight: 500; }
+.tasks-done-section { padding: 0 28px 32px; }
+.tasks-done-hdr { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; padding: 14px 0 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.tasks-done-hdr:hover { color: var(--text); }
 
 /* ─── FEEDBACK MODAL ─────────────────────────────────────── */
 #feedback-overlay {
@@ -472,9 +482,9 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <span class="nav-label">Atenção</span>
         <span class="nav-badge" id="nb-at">—</span>
       </div>
-      <div class="nav-item" onclick="switchView('kanban')">
-        <span class="nav-icon">📋</span>
-        <span class="nav-label">Kanban</span>
+      <div class="nav-item" onclick="switchView('tasks')">
+        <span class="nav-icon">✅</span>
+        <span class="nav-label">Tasks</span>
         <span class="nav-badge" id="nb-kb">—</span>
       </div>
     </div>
@@ -523,7 +533,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <div class="metric m-mt" id="mc-mt" onclick="switchView('mt')"><div class="metric-accent"></div><div class="metric-label">Mid Touch</div><div class="metric-value" id="m-mt-n">—</div><div class="metric-sub" id="m-mt-g">—</div><span class="metric-arrow">→</span></div>
         <div class="metric m-lt" id="mc-lt" onclick="switchView('lt')"><div class="metric-accent"></div><div class="metric-label">Low Touch</div><div class="metric-value" id="m-lt-n">—</div><div class="metric-sub" id="m-lt-g">—</div><span class="metric-arrow">→</span></div>
         <div class="metric m-at" id="mc-at" onclick="switchView('at')"><div class="metric-accent"></div><div class="metric-label">⚠ Atenção</div><div class="metric-value" id="m-at-n">—</div><div class="metric-sub" id="m-at-g">—</div><span class="metric-arrow">→</span></div>
-        <div class="metric m-kb" id="mc-kanban" onclick="switchView('kanban')"><div class="metric-accent"></div><div class="metric-label">📋 Kanban</div><div class="metric-value" id="m-kb-n">—</div><div class="metric-sub">clientes prioritários</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-kb" id="mc-tasks" onclick="switchView('tasks')"><div class="metric-accent"></div><div class="metric-label">✅ Tasks</div><div class="metric-value" id="m-kb-n">—</div><div class="metric-sub">clientes prioritários</div><span class="metric-arrow">→</span></div>
       </div>
 
       <!-- HT View -->
@@ -550,38 +560,35 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <div class="table-wrap"><table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
       </div>
 
-      <!-- KANBAN View -->
-      <div class="view" id="view-kanban">
-        <div class="view-header"><span class="view-badge kb">📋 Kanban de Contatos</span></div>
-        <div class="kanban-top">
-          <div class="kanban-info">Clientes em risco · Sem bloqueio Swap · Sem conta encerrada pela P3</div>
-          <button class="kanban-refresh" onclick="loadKanban(true)">↺ Atualizar</button>
+      <!-- TASKS View -->
+      <div class="view" id="view-tasks">
+        <div class="view-header"><span class="view-badge kb">✅ Tasks de Contato</span></div>
+        <div class="tasks-top">
+          <div class="tasks-info">Adormecidos primeiro · Depois clientes em queda · Ordenados por GTV</div>
+          <button class="tasks-refresh" onclick="loadTasks(true)">↺ Atualizar</button>
         </div>
-        <div class="kanban-legend">
-          <span style="font-size:11px;font-weight:700;color:var(--text-2);margin-right:4px">Prioridade:</span>
-          <span class="kleg"><span class="kleg-dot" style="background:#DC2626"></span>Adormecido HT</span>
-          <span class="kleg"><span class="kleg-dot" style="background:#7C3AED"></span>HT → Mid Touch</span>
-          <span class="kleg"><span class="kleg-dot" style="background:#D97706"></span>Adormecido MT</span>
-          <span class="kleg"><span class="kleg-dot" style="background:#2563EB"></span>HT → Low Touch</span>
-          <span class="kleg"><span class="kleg-dot" style="background:#9CA3AF"></span>MT → Low Touch</span>
+        <div class="tasks-section" id="tasks-dormant-section">
+          <div class="tasks-section-hdr">
+            <span class="tasks-hdr-dot" style="background:#DC2626"></span>
+            <span class="tasks-hdr-title">🔴 Adormecidos</span>
+            <span class="tasks-hdr-count" id="tasks-dormant-count">0</span>
+          </div>
+          <div id="tasks-dormant-list"><div class="tasks-empty">Carregando…</div></div>
         </div>
-        <div class="kanban-board">
-          <div class="kanban-col col-0" ondragover="onDragOver(event)" ondrop="onDrop(event,'0')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">📬 A Contactar</span><span class="kc-count" id="kc-0">0</span></div>
-            <div class="kanban-col-body" id="kb-0"></div>
+        <div class="tasks-section" id="tasks-decline-section">
+          <div class="tasks-section-hdr">
+            <span class="tasks-hdr-dot" style="background:#D97706"></span>
+            <span class="tasks-hdr-title">🟡 Em Queda</span>
+            <span class="tasks-hdr-count" id="tasks-decline-count">0</span>
           </div>
-          <div class="kanban-col col-1" ondragover="onDragOver(event)" ondrop="onDrop(event,'1')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">📞 Em Contato</span><span class="kc-count" id="kc-1">0</span></div>
-            <div class="kanban-col-body" id="kb-1"></div>
+          <div id="tasks-decline-list"></div>
+        </div>
+        <div class="tasks-done-section" id="tasks-done-section" style="display:none">
+          <div class="tasks-done-hdr" onclick="toggleDoneSection()">
+            <span>✅ Concluídos</span><span id="tasks-done-count" style="background:var(--p3-bg);border:1px solid var(--border);padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700">0</span>
+            <span style="margin-left:auto;font-size:12px" id="tasks-done-chevron">▼</span>
           </div>
-          <div class="kanban-col col-2" ondragover="onDragOver(event)" ondrop="onDrop(event,'2')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">📅 Retorno Agendado</span><span class="kc-count" id="kc-2">0</span></div>
-            <div class="kanban-col-body" id="kb-2"></div>
-          </div>
-          <div class="kanban-col col-3" ondragover="onDragOver(event)" ondrop="onDrop(event,'3')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">✅ Concluído</span><span class="kc-count" id="kc-3">0</span></div>
-            <div class="kanban-col-body" id="kb-3"></div>
-          </div>
+          <div id="tasks-done-list" style="display:none"></div>
         </div>
       </div>
     </div>
@@ -605,6 +612,9 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
       <div class="info-item"><div class="info-label">Total 6 meses</div><div class="info-value" id="d-total">—</div></div>
     </div>
     <div class="form-section">
+      <div><label class="form-label">👤 Nome do contato</label>
+        <input type="text" class="form-select" id="d-contact-name" placeholder="Ex: João Silva — CEO" style="font-size:13px">
+      </div>
       <div><label class="form-label">Tipo de contato</label>
         <select class="form-select" id="d-type">
           <option value="call">📞 Ligação</option>
@@ -678,7 +688,7 @@ const VIEW_META = {
   mt: { title: 'Mid Touch', sub: 'GTV entre R$50k e R$100k em todos os meses' },
   lt: { title: 'Low Touch', sub: 'Perenes nos últimos 6 meses · Média abaixo de R$50k' },
   at: { title: 'Atenção', sub: 'Degradação de cluster ou adormecimento nos últimos 30 dias' },
-  kanban: { title: 'Kanban de Contatos', sub: 'Clientes em risco · Prioridade de contato' },
+  tasks: { title: 'Tasks', sub: 'Adormecidos primeiro · Em queda · Ordenados por GTV' },
 };
 
 // ══ AUTH ══════════════════════════════════════════════════
@@ -945,7 +955,7 @@ function switchView(view) {
   const navMap = {ht:0,mt:1,lt:2,at:3,kanban:4};
   document.querySelectorAll('.nav-item')[navMap[view]]?.classList.add('active');
   // metric cards
-  const cardMap = {ht:'mc-ht',mt:'mc-mt',lt:'mc-lt',at:'mc-at',kanban:'mc-kanban'};
+  const cardMap = {ht:'mc-ht',mt:'mc-mt',lt:'mc-lt',at:'mc-at',tasks:'mc-tasks'};
   document.querySelectorAll('.metric').forEach(el => el.classList.remove('active'));
   const activeCard = document.getElementById(cardMap[view]);
   if (activeCard) activeCard.classList.add('active');
@@ -955,7 +965,7 @@ function switchView(view) {
   document.getElementById('topbar-title').textContent = VIEW_META[view].title;
   document.getElementById('topbar-sub').textContent = VIEW_META[view].sub;
   document.getElementById('global-search').value = '';
-  if (view==='kanban' && !kanbanClients.length) loadKanban(false);
+  if (view==='tasks' && !tasksClients.length) loadTasks(false);
 }
 
 // ══ DRAWER ════════════════════════════════════════════════
@@ -974,6 +984,7 @@ function openDrawer(realmId) {
   document.getElementById('d-notes').value = '';
   document.getElementById('d-type').value = 'call';
   document.getElementById('d-contacted-toggle').checked = state.contactedThisMonth.has(realmId);
+  document.getElementById('d-contact-name').value = getContactNames()[realmId] || '';
   const tag = document.getElementById('d-cluster-tag');
   const cls = {'High Touch':'ht','Mid Touch':'mt','Low Touch':'lt','Atenção':'at'}[c.cluster];
   tag.className = 'view-badge '+(cls||'mt'); tag.textContent = c.cluster;
@@ -1003,6 +1014,9 @@ async function saveContact() {
   const btn = document.getElementById('d-save-btn');
   btn.disabled=true; btn.textContent='Salvando…';
   const type=document.getElementById('d-type').value, notes=document.getElementById('d-notes').value.trim(), isC=document.getElementById('d-contacted-toggle').checked;
+  const cname = document.getElementById('d-contact-name').value.trim();
+  if (cname) setContactName(c.realmId, cname); else deleteContactName(c.realmId);
+  if (state.currentView==='tasks') renderTasks();
   if (CONFIG.SHEET_ID) {
     try { await sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,c.cluster,state.user.name,state.user.email,type,notes,isC?state.monthRef:'']]); } catch(e) {}
   }
@@ -1020,7 +1034,7 @@ async function quickToggle(realmId, el) {
 }
 function copyRealmId() { navigator.clipboard.writeText(document.getElementById('d-realm-id').dataset.full).then(()=>showToast('Realm ID copiado!','success')); }
 
-// ══ KANBAN ════════════════════════════════════════════════
+// ══ TASKS ═════════════════════════════════════════════════
 const KB_QUERY = `
 WITH params AS (SELECT DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH),MONTH) AS window_start,DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 3 MONTH),MONTH) AS mid_point,DATE_TRUNC(CURRENT_DATE(),MONTH) AS window_end,DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) AS dormant_cutoff),
 excluded AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status IN('REPROVED','CLOSED')),
@@ -1038,56 +1052,107 @@ atencao AS (
   FROM h1 JOIN rn USING(realmId) LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId) LEFT JOIN recent_active ra ON ra.realmId=h1.realmId LEFT JOIN phones ph ON ph.realmId=h1.realmId
   WHERE h1.min_g>=50000 AND(ra.realmId IS NULL OR(h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR(h1.min_g>=50000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
 )
-SELECT realmName,realmId,motivo,avg_monthly_gtv,total_gtv_6m,phone,CASE motivo WHEN 'Adormecido — era High Touch' THEN 1 WHEN 'High Touch → Mid Touch' THEN 2 WHEN 'Adormecido — era Mid Touch' THEN 3 WHEN 'High Touch → Low Touch' THEN 4 WHEN 'Mid Touch → Low Touch' THEN 5 END AS prioridade
-FROM atencao WHERE motivo IS NOT NULL ORDER BY prioridade,total_gtv_6m DESC`;
+SELECT realmName,realmId,motivo,avg_monthly_gtv,total_gtv_6m,phone,
+  CASE motivo
+    WHEN 'Adormecido — era High Touch' THEN 1
+    WHEN 'Adormecido — era Mid Touch'  THEN 2
+    WHEN 'High Touch → Mid Touch'      THEN 3
+    WHEN 'High Touch → Low Touch'      THEN 4
+    WHEN 'Mid Touch → Low Touch'       THEN 5
+  END AS prioridade
+FROM atencao WHERE motivo IS NOT NULL ORDER BY prioridade, total_gtv_6m DESC`;
 
-let kanbanClients = [], draggedId = null;
-function getKbState() { try { return JSON.parse(localStorage.getItem('p3_kanban_v3')||'{}'); } catch(e) { return {}; } }
-function saveKbState(s) { localStorage.setItem('p3_kanban_v3',JSON.stringify(s)); }
+let tasksClients = [];
 
-async function loadKanban(force) {
-  if (!kanbanClients.length||force) {
-    document.getElementById('kb-0').innerHTML = '<div class="kanban-empty">Carregando…</div>';
-    try { kanbanClients = await bqQuery(KB_QUERY); } catch(e) { showToast('Erro Kanban: '+e.message,'error'); return; }
+// Contact names stored in localStorage
+function getContactNames() { try { return JSON.parse(localStorage.getItem('p3_contact_names')||'{}'); } catch(e) { return {}; } }
+function setContactName(realmId, name) { const n=getContactNames(); n[realmId]=name; localStorage.setItem('p3_contact_names',JSON.stringify(n)); }
+function deleteContactName(realmId) { const n=getContactNames(); delete n[realmId]; localStorage.setItem('p3_contact_names',JSON.stringify(n)); }
+
+// Task statuses: 0=A Contactar, 1=Em Contato, 2=Agendado, 3=Concluído
+const TASK_STATUS = ['📬 A Contactar','📞 Em Contato','📅 Agendado','✅ Concluído'];
+const TASK_STATUS_CLS = ['tst-0','tst-1','tst-2','tst-3'];
+function getTaskStatus() { try { return JSON.parse(localStorage.getItem('p3_task_status')||'{}'); } catch(e) { return {}; } }
+function saveTaskStatus(s) { localStorage.setItem('p3_task_status',JSON.stringify(s)); }
+function cycleStatus(realmId) {
+  const st=getTaskStatus(); const cur=parseInt(st[realmId]||'0');
+  st[realmId]=String((cur+1)%4); saveTaskStatus(st);
+  if (st[realmId]==='3'&&CONFIG.SHEET_ID) {
+    const c=tasksClients.find(x=>x.realmId===realmId);
+    if(c) sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,'Atenção',state.user?.name||'',state.user?.email||'','task-concluida','Tarefa concluída',state.monthRef]]).catch(()=>{});
   }
-  document.getElementById('nb-kb').textContent = kanbanClients.length;
-  renderKanban();
+  renderTasks();
 }
-function renderKanban() {
-  const st = getKbState(); const cols = [[],[],[],[]];
-  kanbanClients.forEach(c => cols[parseInt(st[c.realmId]??'0')].push(c));
-  for (let i=0;i<4;i++) {
-    document.getElementById('kc-'+i).textContent = cols[i].length;
-    const body = document.getElementById('kb-'+i); body.innerHTML='';
-    if (!cols[i].length) { body.innerHTML='<div class="kanban-empty">Vazio</div>'; continue; }
-    cols[i].sort((a,b)=>(parseInt(a.prioridade)||9)-(parseInt(b.prioridade)||9));
-    cols[i].forEach(c=>body.appendChild(buildKCard(c)));
+
+async function loadTasks(force) {
+  if (!tasksClients.length||force) {
+    document.getElementById('tasks-dormant-list').innerHTML = '<div class="tasks-empty">Carregando…</div>';
+    try { tasksClients = await bqQuery(KB_QUERY); } catch(e) { showToast('Erro Tasks: '+e.message,'error'); return; }
   }
+  document.getElementById('nb-kb').textContent = tasksClients.length;
+  renderTasks();
 }
-function buildKCard(c) {
-  const p=parseInt(c.prioridade)||5, ph=fmtPhone(c.phone);
-  const card=document.createElement('div');
-  card.className=`kcard p${p}`; card.draggable=true; card.dataset.id=c.realmId;
-  card.innerHTML=`
-    <div class="kcard-name">${c.realmName}</div>
-    <div class="kcard-badge p${p}">${c.motivo}</div>
-    <div class="kcard-gtv">${fmt(c.avg_monthly_gtv)}<span class="kcard-gtv-sub">/mês</span></div>
-    <div class="kcard-footer">
-      ${ph?`<a class="kcard-phone" href="tel:${c.phone}">📞 ${ph}</a>`:'<span class="kcard-phone" style="color:var(--text-2)">Sem telefone</span>'}
-      <button class="kcard-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">Registrar</button>
-    </div>`;
-  card.addEventListener('dragstart',e=>{ draggedId=c.realmId; setTimeout(()=>card.classList.add('dragging'),0); e.dataTransfer.effectAllowed='move'; });
-  card.addEventListener('dragend',()=>{ card.classList.remove('dragging'); draggedId=null; });
-  return card;
+
+function renderTasks() {
+  const st = getTaskStatus();
+  const names = getContactNames();
+  // separate dormant vs declining, then done
+  const dormant = tasksClients.filter(c=>parseInt(c.prioridade)<=2 && st[c.realmId]!=='3');
+  const decline = tasksClients.filter(c=>parseInt(c.prioridade)>2  && st[c.realmId]!=='3');
+  const done    = tasksClients.filter(c=>st[c.realmId]==='3');
+  // sort each group by total_gtv_6m desc (already ordered from BQ within groups, but re-sort for safety)
+  const byGtv = (a,b) => (parseFloat(b.total_gtv_6m)||0)-(parseFloat(a.total_gtv_6m)||0);
+  dormant.sort(byGtv); decline.sort(byGtv);
+
+  document.getElementById('tasks-dormant-count').textContent = dormant.length;
+  document.getElementById('tasks-decline-count').textContent = decline.length;
+  document.getElementById('tasks-done-count').textContent = done.length;
+
+  renderTaskList('tasks-dormant-list', dormant, st, names);
+  renderTaskList('tasks-decline-list', decline, st, names);
+  renderTaskList('tasks-done-list', done, st, names);
+
+  const doneSection = document.getElementById('tasks-done-section');
+  doneSection.style.display = done.length ? 'block' : 'none';
 }
-function onDragOver(e) { e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.add('drag-over'); }
-function onDragLeave(e) { e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over'); }
-function onDrop(e,col) {
-  e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over');
-  if (!draggedId) return;
-  const st=getKbState(); st[draggedId]=col; saveKbState(st);
-  if (col==='3'&&CONFIG.SHEET_ID) { const c=kanbanClients.find(x=>x.realmId===draggedId); if(c) sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,'Atenção',state.user?.name||'',state.user?.email||'','kanban-concluido','Movido para Concluído',state.monthRef]]).catch(()=>{}); }
-  renderKanban(); showToast('Card movido!','success');
+
+function renderTaskList(containerId, list, st, names) {
+  const el = document.getElementById(containerId);
+  if (!list.length) { el.innerHTML = '<div class="tasks-empty">Nenhum cliente aqui.</div>'; return; }
+  el.innerHTML = '';
+  list.forEach((c, i) => {
+    const p = parseInt(c.prioridade)||5;
+    const status = parseInt(st[c.realmId]||'0');
+    const ph = fmtPhone(c.phone);
+    const cname = names[c.realmId]||'';
+    const moClass = ['tm-p1','tm-p2','tm-p3','tm-p4','tm-p5'][p-1]||'tm-p5';
+    const row = document.createElement('div');
+    row.className = `task-item tp${p}${status===3?' ts-done':''}`;
+    row.innerHTML = `
+      <div class="task-rank">#${i+1}</div>
+      <div class="task-info">
+        <div class="task-company">${c.realmName}</div>
+        <div class="task-contact">👤 ${cname||'<span style="color:#C4C4D8">Sem contato</span>'}</div>
+      </div>
+      <div class="task-gtv-col">
+        <div class="task-gtv-val">${fmt(c.avg_monthly_gtv)}</div>
+        <div class="task-gtv-sub">/mês</div>
+      </div>
+      <span class="task-motivo ${moClass}">${c.motivo}</span>
+      ${ph ? `<a class="client-phone" href="tel:${c.phone}" style="white-space:nowrap;font-size:11px" onclick="event.stopPropagation()">📞 ${ph}</a>` : '<span style="font-size:11px;color:var(--text-2)">—</span>'}
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="task-status-btn ${TASK_STATUS_CLS[status]}" onclick="cycleStatus('${c.realmId}');event.stopPropagation()" title="Clique para avançar o status">${TASK_STATUS[status]}</button>
+        <button class="task-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">Registrar</button>
+      </div>`;
+    el.appendChild(row);
+  });
+}
+
+let doneExpanded = false;
+function toggleDoneSection() {
+  doneExpanded = !doneExpanded;
+  document.getElementById('tasks-done-list').style.display = doneExpanded ? 'block' : 'none';
+  document.getElementById('tasks-done-chevron').textContent = doneExpanded ? '▲' : '▼';
 }
 
 // ══ FEEDBACK ══════════════════════════════════════════════
