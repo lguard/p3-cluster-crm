@@ -174,24 +174,36 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 24px 28px 0; }
 .metric {
   background: var(--white); border-radius: 14px; padding: 18px 20px;
-  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
-  position: relative; overflow: hidden; transition: box-shadow 0.15s;
+  border: 2px solid var(--border); box-shadow: var(--shadow-sm);
+  position: relative; overflow: hidden; transition: all 0.18s;
+  cursor: pointer; user-select: none;
 }
-.metric:hover { box-shadow: var(--shadow); }
+.metric:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
 .metric-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
 .metric-label { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; }
 .metric-value { font-size: 26px; font-weight: 800; color: var(--text); margin: 8px 0 4px; letter-spacing: -1px; }
 .metric-sub { font-size: 11px; color: var(--text-2); font-weight: 500; }
+.metric-arrow { position: absolute; bottom: 12px; right: 14px; font-size: 12px; color: var(--border); transition: all 0.18s; }
+.metric:hover .metric-arrow { color: var(--text-2); transform: translateX(2px); }
+/* cluster colors */
 .metric.m-ht .metric-accent { background: #16A34A; }
 .metric.m-mt .metric-accent { background: var(--p3); }
 .metric.m-lt .metric-accent { background: var(--p3-light); }
 .metric.m-at .metric-accent { background: #EA580C; }
-.metric.m-total .metric-accent { background: var(--p3-dark); }
+.metric.m-kb .metric-accent { background: var(--p3-dark); }
 .metric.m-ht .metric-value { color: #16A34A; }
 .metric.m-mt .metric-value { color: var(--p3); }
 .metric.m-lt .metric-value { color: var(--p3-light); }
 .metric.m-at .metric-value { color: #EA580C; }
-.metric.m-total .metric-value { color: var(--p3-dark); }
+.metric.m-kb .metric-value { color: var(--p3-dark); }
+/* active states */
+.metric.m-ht.active { border-color: #16A34A; background: #F0FDF4; }
+.metric.m-mt.active { border-color: var(--p3); background: var(--p3-pale); }
+.metric.m-lt.active { border-color: var(--p3-light); background: #F5F4FC; }
+.metric.m-at.active { border-color: #EA580C; background: #FFF7ED; }
+.metric.m-kb.active { border-color: var(--p3-dark); background: var(--p3-pale); }
+.metric.active .metric-arrow { color: var(--text-2); }
+.metric.active { transform: translateY(-2px); box-shadow: var(--shadow); }
 
 /* ─── VIEW HEADER ────────────────────────────────────────── */
 .view-header { padding: 22px 28px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -507,11 +519,11 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
     <div id="content">
       <!-- Metrics -->
       <div class="metrics" id="metrics-row">
-        <div class="metric m-ht"><div class="metric-accent"></div><div class="metric-label">High Touch</div><div class="metric-value" id="m-ht-n">—</div><div class="metric-sub" id="m-ht-g">—</div></div>
-        <div class="metric m-mt"><div class="metric-accent"></div><div class="metric-label">Mid Touch</div><div class="metric-value" id="m-mt-n">—</div><div class="metric-sub" id="m-mt-g">—</div></div>
-        <div class="metric m-lt"><div class="metric-accent"></div><div class="metric-label">Low Touch</div><div class="metric-value" id="m-lt-n">—</div><div class="metric-sub" id="m-lt-g">—</div></div>
-        <div class="metric m-at"><div class="metric-accent"></div><div class="metric-label">⚠ Atenção</div><div class="metric-value" id="m-at-n">—</div><div class="metric-sub" id="m-at-g">—</div></div>
-        <div class="metric m-total"><div class="metric-accent"></div><div class="metric-label">GTV Total 6m</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">High + Mid + Low</div></div>
+        <div class="metric m-ht active" id="mc-ht" onclick="switchView('ht')"><div class="metric-accent"></div><div class="metric-label">High Touch</div><div class="metric-value" id="m-ht-n">—</div><div class="metric-sub" id="m-ht-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-mt" id="mc-mt" onclick="switchView('mt')"><div class="metric-accent"></div><div class="metric-label">Mid Touch</div><div class="metric-value" id="m-mt-n">—</div><div class="metric-sub" id="m-mt-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-lt" id="mc-lt" onclick="switchView('lt')"><div class="metric-accent"></div><div class="metric-label">Low Touch</div><div class="metric-value" id="m-lt-n">—</div><div class="metric-sub" id="m-lt-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-at" id="mc-at" onclick="switchView('at')"><div class="metric-accent"></div><div class="metric-label">⚠ Atenção</div><div class="metric-value" id="m-at-n">—</div><div class="metric-sub" id="m-at-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-kb" id="mc-kanban" onclick="switchView('kanban')"><div class="metric-accent"></div><div class="metric-label">📋 Kanban</div><div class="metric-value" id="m-kb-n">—</div><div class="metric-sub">clientes prioritários</div><span class="metric-arrow">→</span></div>
       </div>
 
       <!-- HT View -->
@@ -851,8 +863,11 @@ function renderAll() {
   document.getElementById('m-ht-g').textContent = fmt(ht.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
   document.getElementById('m-mt-g').textContent = fmt(mt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
   document.getElementById('m-lt-g').textContent = fmt(lt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
-  document.getElementById('m-at-g').textContent = at.length+' em risco';
-  document.getElementById('m-total').textContent = fmt(totalGTV);
+  document.getElementById('m-at-g').textContent = fmt(at.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em risco';
+  document.getElementById('m-kb-n').textContent = at.length;
+  // GTV total in topbar subtitle when on default view
+  document.getElementById('topbar-sub').textContent =
+    state.currentView === 'ht' ? VIEW_META['ht'].sub+' · GTV total 6m: '+fmt(totalGTV) : VIEW_META[state.currentView].sub;
 
   // Sidebar badges
   document.getElementById('nb-ht').textContent = ht.length;
@@ -925,9 +940,16 @@ function filterCurrent(q) {
 
 function switchView(view) {
   state.currentView = view;
+  // sidebar nav
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const navMap = {ht:0,mt:1,lt:2,at:3,kanban:4};
   document.querySelectorAll('.nav-item')[navMap[view]]?.classList.add('active');
+  // metric cards
+  const cardMap = {ht:'mc-ht',mt:'mc-mt',lt:'mc-lt',at:'mc-at',kanban:'mc-kanban'};
+  document.querySelectorAll('.metric').forEach(el => el.classList.remove('active'));
+  const activeCard = document.getElementById(cardMap[view]);
+  if (activeCard) activeCard.classList.add('active');
+  // views
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   document.getElementById('topbar-title').textContent = VIEW_META[view].title;
