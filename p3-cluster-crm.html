@@ -975,7 +975,7 @@ function openDrawer(realmId) {
   document.getElementById('d-type').value = 'call';
   document.getElementById('d-contacted-toggle').checked = state.contactedThisMonth.has(realmId);
   const tag = document.getElementById('d-cluster-tag');
-  const cls = {High Touch:'ht',Mid Touch:'mt',Low Touch:'lt',Atenção:'at'}[c.cluster];
+  const cls = {'High Touch':'ht','Mid Touch':'mt','Low Touch':'lt','Atenção':'at'}[c.cluster];
   tag.className = 'view-badge '+(cls||'mt'); tag.textContent = c.cluster;
   const mot = document.getElementById('d-motivo');
   mot.textContent = c.motivo||''; mot.style.display = c.motivo?'block':'none';
