@@ -8,512 +8,592 @@
 <script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 :root {
-  --navy: #43418E;
-  --navy2: #323168;
-  --blue: #43418E;
-  --green: #15803D;
-  --orange: #C05621;
-  --gray: #6B7280;
-  --border: #E2E1F0;
-  --bg: #F7F9FF;
+  --p3: #43418E;
+  --p3-dark: #2D2B6B;
+  --p3-darker: #1E1C4A;
+  --p3-light: #6C6BA8;
+  --p3-pale: #E8E7F5;
+  --p3-bg: #F4F3FB;
   --white: #FFFFFF;
+  --text: #1A1A2E;
+  --text-2: #6B6B8A;
+  --border: #E2E1F0;
+  --green: #16A34A;
+  --orange: #C2410C;
   --red: #B91C1C;
-  --gold: #6C6BA8;
-  --text: #303030;
-  --purple-light: #6C6BA8;
-  --shadow: 0 1px 3px rgba(67,65,142,0.08), 0 1px 2px rgba(67,65,142,0.05);
-  --shadow-lg: 0 10px 25px rgba(67,65,142,0.15);
+  --shadow-sm: 0 1px 3px rgba(45,43,107,0.08);
+  --shadow: 0 4px 16px rgba(45,43,107,0.10);
+  --shadow-lg: 0 12px 40px rgba(45,43,107,0.16);
+  --sidebar-w: 232px;
+  --font: 'Montserrat', Verdana, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Montserrat', Verdana, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+html, body { height: 100%; }
+body { font-family: var(--font); background: var(--p3-bg); color: var(--text); font-size: 13px; }
 
-/* ── Login ─────────────────────────────────────────────── */
+/* ─── LOGIN ──────────────────────────────────────────────── */
 #login-screen {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #323168 0%, #43418E 60%, #6C6BA8 100%);
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--p3-darker) 0%, var(--p3-dark) 50%, var(--p3) 100%);
+  z-index: 999;
 }
 .login-card {
-  background: white; border-radius: 20px; padding: 52px 44px; width: 400px;
-  text-align: center; box-shadow: var(--shadow-lg);
+  background: var(--white); border-radius: 24px; padding: 52px 48px;
+  width: 420px; text-align: center; box-shadow: var(--shadow-lg);
 }
-.login-logo {
-  font-size: 32px; font-weight: 800; color: var(--navy); letter-spacing: -1px;
-  margin-bottom: 2px; font-family: 'Montserrat', Verdana, sans-serif;
+.login-logo-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 28px; }
+.login-logo-icon {
+  width: 52px; height: 52px; background: var(--p3); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; color: white; letter-spacing: -1px;
 }
-.login-logo span { color: var(--gold); }
-.login-tagline { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--purple-light); margin-bottom: 28px; }
-.login-subtitle { font-size: 13px; color: var(--gray); margin-bottom: 28px; }
-.login-divider { width: 40px; height: 3px; background: var(--gold); border-radius: 2px; margin: 0 auto 28px; }
+.login-logo-text { text-align: left; }
+.login-logo-name { font-size: 20px; font-weight: 800; color: var(--p3-dark); letter-spacing: -0.5px; }
+.login-logo-sub { font-size: 11px; font-weight: 600; color: var(--p3-light); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 1px; }
+.login-divider { width: 48px; height: 2px; background: var(--p3-pale); border-radius: 2px; margin: 0 auto 24px; }
+.login-headline { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.login-sub { font-size: 12px; color: var(--text-2); margin-bottom: 28px; line-height: 1.5; }
 .login-btn {
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  width: 100%; padding: 13px 20px; background: white; border: 2px solid var(--border);
-  border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text);
-  transition: all 0.15s; font-family: 'Montserrat', Verdana, sans-serif;
+  width: 100%; padding: 13px 20px; border: 2px solid var(--border); border-radius: 12px;
+  font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text);
+  background: white; font-family: var(--font); transition: all 0.15s;
 }
-.login-btn:hover { background: var(--bg); border-color: var(--purple-light); box-shadow: var(--shadow); }
+.login-btn:hover { border-color: var(--p3-light); background: var(--p3-bg); box-shadow: var(--shadow-sm); }
 .login-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
-.login-error { margin-top: 16px; padding: 10px 14px; background: #FEF2F2; border-radius: 8px; font-size: 12px; color: var(--red); display: none; }
-.login-note { margin-top: 20px; font-size: 11px; color: #9CA3AF; }
+.login-error { margin-top: 14px; padding: 10px 14px; background: #FEF2F2; border-radius: 8px; font-size: 12px; color: var(--red); display: none; border: 1px solid #FECACA; }
+.login-note { margin-top: 18px; font-size: 11px; color: #A0A0BC; }
 
-/* ── Setup banner ───────────────────────────────────────── */
-#setup-banner {
-  background: #FEF3C7; border-bottom: 1px solid #FDE68A;
-  padding: 10px 24px; font-size: 12px; color: #92400E;
-  display: none; align-items: center; gap: 8px;
+/* ─── APP SHELL ──────────────────────────────────────────── */
+#app { display: none; height: 100vh; display: none; }
+#app.visible { display: flex; }
+
+/* ─── SIDEBAR ────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w); height: 100vh;
+  background: var(--p3-dark); display: flex; flex-direction: column;
+  position: sticky; top: 0; overflow: hidden;
 }
-#setup-banner button {
-  margin-left: auto; background: #92400E; color: white; border: none;
-  border-radius: 6px; padding: 4px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
+.sidebar-brand {
+  padding: 22px 20px 18px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-brand-icon {
+  width: 36px; height: 36px; background: rgba(255,255,255,0.12); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; color: white; flex-shrink: 0;
+}
+.sidebar-brand-text { line-height: 1.2; }
+.sidebar-brand-name { font-size: 14px; font-weight: 800; color: white; letter-spacing: -0.3px; }
+.sidebar-brand-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+
+.sidebar-section { padding: 18px 12px 6px; }
+.sidebar-section-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1.5px; padding: 0 8px; margin-bottom: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  border-radius: 10px; cursor: pointer; transition: all 0.15s;
+  color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500;
+  margin-bottom: 1px;
+}
+.nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(255,255,255,0.12); color: white; font-weight: 600; }
+.nav-icon { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.nav-label { flex: 1; }
+.nav-badge {
+  font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 20px;
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);
+}
+.nav-item.active .nav-badge { background: rgba(255,255,255,0.2); color: white; }
+.nav-item.danger { color: #FCA5A5; }
+.nav-item.danger:hover { background: rgba(252,165,165,0.1); color: #FCA5A5; }
+.nav-item.danger.active { background: rgba(252,165,165,0.15); color: #FECACA; }
+.nav-item.danger .nav-badge { background: rgba(252,165,165,0.2); color: #FCA5A5; }
+
+.sidebar-spacer { flex: 1; }
+
+.sidebar-period {
+  margin: 0 12px 8px; padding: 8px 12px; background: rgba(255,255,255,0.06);
+  border-radius: 10px; font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500;
+  text-align: center; border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* ── Header ─────────────────────────────────────────────── */
-#app { display: none; min-height: 100vh; }
-.header {
-  background: linear-gradient(90deg, #323168 0%, #43418E 100%);
-  color: white; padding: 12px 28px; display: flex; align-items: center; gap: 16px;
-  position: sticky; top: 0; z-index: 10; border-bottom: 3px solid var(--gold);
+.sidebar-user {
+  padding: 12px; border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: center; gap: 10px;
 }
-.header-logo {
-  font-size: 17px; font-weight: 800; letter-spacing: -0.5px; flex-shrink: 0;
-  font-family: 'Montserrat', Verdana, sans-serif; display: flex; align-items: center; gap: 6px;
+.sidebar-avatar {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--p3); border: 2px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden;
 }
-.header-logo-accent { color: var(--gold); }
-.header-logo-divider { width: 1px; height: 18px; background: rgba(255,255,255,0.2); margin: 0 2px; }
-.header-logo-sub { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; }
-.header-period {
-  font-size: 11px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px; padding: 3px 12px; color: rgba(255,255,255,0.8); white-space: nowrap;
-  font-weight: 500;
+.sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.sidebar-user-info { flex: 1; min-width: 0; }
+.sidebar-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-email { font-size: 10px; color: rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-signout { background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; padding: 4px; border-radius: 6px; font-size: 16px; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
+.sidebar-signout:hover { color: rgba(255,255,255,0.7); }
+
+/* ─── MAIN ───────────────────────────────────────────────── */
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+.topbar {
+  background: var(--white); border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 5;
 }
-.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.user-info { text-align: right; }
-.user-name { font-size: 13px; font-weight: 600; }
-.user-email { font-size: 11px; color: rgba(255,255,255,0.6); }
-.user-avatar {
-  width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--gold);
-  background: var(--navy2); display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: white; overflow: hidden; flex-shrink: 0;
+.topbar-title { font-size: 16px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+.topbar-subtitle { font-size: 11px; color: var(--text-2); font-weight: 500; }
+.topbar-search {
+  margin-left: auto; padding: 8px 14px 8px 36px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 12px; font-family: var(--font); background: var(--p3-bg);
+  color: var(--text); width: 220px; position: relative; transition: all 0.15s;
 }
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.btn-signout {
-  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-  color: white; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;
-  white-space: nowrap; font-family: 'Montserrat', Verdana, sans-serif; font-weight: 500;
-}
-.btn-signout:hover { background: rgba(255,255,255,0.18); }
+.topbar-search:focus { outline: none; border-color: var(--p3-light); width: 260px; background: white; }
+.search-wrap { position: relative; flex-shrink: 0; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
 .btn-feedback {
-  background: var(--gold); border: none; color: #303030;
-  padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
-  cursor: pointer; font-family: 'Montserrat', Verdana, sans-serif;
+  background: var(--p3); color: white; border: none; border-radius: 10px;
+  padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s; white-space: nowrap; flex-shrink: 0;
 }
-.btn-feedback:hover { background: #F8B900; }
-
-/* ── Summary cards ───────────────────────────────────────── */
-.summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 22px 28px 6px; }
-.card {
-  background: white; border-radius: 12px; padding: 16px 18px;
-  border: 1px solid var(--border); box-shadow: var(--shadow);
-  border-top: 3px solid transparent;
+.btn-feedback:hover { background: var(--p3-dark); }
+.setup-banner {
+  background: #FFF7ED; border-bottom: 1px solid #FED7AA; padding: 10px 28px;
+  font-size: 12px; color: #9A3412; display: none; align-items: center; gap: 8px; font-weight: 500;
 }
-.card-label { font-size: 10px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; }
-.card-value { font-size: 24px; font-weight: 800; margin-top: 5px; font-family: 'Montserrat', Verdana, sans-serif; }
-.card-sub { font-size: 10px; color: #9CA3AF; margin-top: 3px; font-weight: 500; }
-.card.ht { border-top-color: var(--green); } .card.ht .card-value { color: var(--green); }
-.card.mt { border-top-color: var(--navy); } .card.mt .card-value { color: var(--navy); }
-.card.lt { border-top-color: var(--purple-light); } .card.lt .card-value { color: var(--purple-light); }
-.card.at { border-top-color: var(--orange); } .card.at .card-value { color: var(--orange); }
-.card.total { border-top-color: var(--gold); } .card.total .card-value { color: var(--navy2); }
-
-/* ── Tabs ────────────────────────────────────────────────── */
-.tabs { display: flex; padding: 18px 28px 0; border-bottom: 2px solid var(--border); gap: 2px; overflow-x: auto; }
-.tab {
-  padding: 9px 18px; font-size: 12px; font-weight: 600; cursor: pointer;
-  border-radius: 8px 8px 0 0; border: 1px solid transparent; border-bottom: none;
-  color: var(--gray); background: transparent; transition: all 0.15s;
-  display: flex; align-items: center; gap: 6px; white-space: nowrap;
-  font-family: 'Montserrat', Verdana, sans-serif;
+.setup-banner button {
+  margin-left: auto; background: #9A3412; color: white; border: none; border-radius: 7px;
+  padding: 5px 14px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font);
 }
-.tab:hover { background: rgba(67,65,142,0.06); color: var(--navy); }
-.tab.active { background: white; color: var(--navy); border-color: var(--border); border-bottom: 2px solid white; margin-bottom: -2px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.dot-ht { background: var(--green); } .dot-mt { background: var(--blue); }
-.dot-lt { background: #9CA3AF; } .dot-at { background: #DD6B20; }
-.badge { min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-.badge-ht { background: #DCFCE7; color: var(--green); } .badge-mt { background: #DBEAFE; color: var(--blue); }
-.badge-lt { background: #F3F4F6; color: var(--gray); } .badge-at { background: #FEF3C7; color: #B45309; }
 
-/* ── Panel / Table ───────────────────────────────────────── */
-.panel { display: none; padding: 20px 24px 32px; }
-.panel.active { display: block; }
-.panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-.cluster-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
-.cluster-tag.ht { background: #DCFCE7; color: var(--green); }
-.cluster-tag.mt { background: #DBEAFE; color: var(--blue); }
-.cluster-tag.lt { background: #F3F4F6; color: var(--gray); }
-.cluster-tag.at { background: #FEF3C7; color: #B45309; }
-.cluster-rule { font-size: 12px; color: #9CA3AF; }
+/* ─── CONTENT AREA ───────────────────────────────────────── */
+#content { flex: 1; overflow-y: auto; }
 
-.client-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.client-table thead th { background: var(--bg); font-size: 10px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.8px; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 700; font-family: 'Montserrat', Verdana, sans-serif; }
-.client-table tbody tr { border-bottom: 1px solid #F0EFF8; transition: background 0.1s; cursor: pointer; }
-.client-table tbody tr:last-child { border-bottom: none; }
-.client-table tbody tr:hover { background: rgba(67,65,142,0.04); }
-.client-table td { padding: 10px 14px; font-size: 13px; vertical-align: middle; }
+/* ─── METRIC CARDS ───────────────────────────────────────── */
+.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 24px 28px 0; }
+.metric {
+  background: var(--white); border-radius: 14px; padding: 18px 20px;
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  position: relative; overflow: hidden; transition: box-shadow 0.15s;
+}
+.metric:hover { box-shadow: var(--shadow); }
+.metric-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.metric-label { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; }
+.metric-value { font-size: 26px; font-weight: 800; color: var(--text); margin: 8px 0 4px; letter-spacing: -1px; }
+.metric-sub { font-size: 11px; color: var(--text-2); font-weight: 500; }
+.metric.m-ht .metric-accent { background: #16A34A; }
+.metric.m-mt .metric-accent { background: var(--p3); }
+.metric.m-lt .metric-accent { background: var(--p3-light); }
+.metric.m-at .metric-accent { background: #EA580C; }
+.metric.m-total .metric-accent { background: var(--p3-dark); }
+.metric.m-ht .metric-value { color: #16A34A; }
+.metric.m-mt .metric-value { color: var(--p3); }
+.metric.m-lt .metric-value { color: var(--p3-light); }
+.metric.m-at .metric-value { color: #EA580C; }
+.metric.m-total .metric-value { color: var(--p3-dark); }
+
+/* ─── VIEW HEADER ────────────────────────────────────────── */
+.view-header { padding: 22px 28px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.view-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px;
+  border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.view-badge.ht { background: #DCFCE7; color: #15803D; }
+.view-badge.mt { background: var(--p3-pale); color: var(--p3); }
+.view-badge.lt { background: #F3F4F6; color: #4B5563; }
+.view-badge.at { background: #FEF3C7; color: #B45309; }
+.view-badge.kb { background: var(--p3-pale); color: var(--p3-dark); }
+.view-rule { font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+/* ─── CLIENT TABLE ───────────────────────────────────────── */
+.table-wrap { padding: 0 28px 32px; }
+.client-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.client-table thead th {
+  font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase;
+  letter-spacing: 1px; padding: 0 16px 8px; text-align: left;
+}
+.client-table tbody tr {
+  background: var(--white); box-shadow: var(--shadow-sm);
+  border-radius: 12px; transition: all 0.15s; cursor: pointer;
+}
+.client-table tbody tr:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.client-table td { padding: 14px 16px; vertical-align: middle; }
+.client-table td:first-child { border-radius: 12px 0 0 12px; }
+.client-table td:last-child { border-radius: 0 12px 12px 0; }
+.client-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.client-id { font-size: 10px; color: var(--text-2); margin-top: 2px; font-weight: 500; }
+.client-phone { color: var(--p3); text-decoration: none; font-size: 12px; font-weight: 600; }
+.client-phone:hover { text-decoration: underline; }
+.gtv-pill {
+  display: inline-block; background: var(--p3-pale); color: var(--p3-dark);
+  padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
+}
+.months-badge {
+  font-size: 11px; color: var(--text-2); background: #F3F4F6;
+  padding: 3px 8px; border-radius: 6px; font-weight: 600;
+}
+.motivo-pill { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.mp-dormant-ht { background: #FEE2E2; color: #991B1B; }
+.mp-dormant-mt { background: #FEF3C7; color: #92400E; }
+.mp-ht-mt { background: #DBEAFE; color: #1E40AF; }
+.mp-ht-lt { background: #EDE9FE; color: #5B21B6; }
+.mp-mt-lt { background: #F3F4F6; color: #374151; }
 .contacted-toggle {
-  width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border);
+  width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--border);
   background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s; flex-shrink: 0;
+  transition: all 0.15s;
 }
-.contacted-toggle.on { background: var(--green); border-color: var(--green); }
-.contacted-toggle.on::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
-.phone-link { color: var(--blue); text-decoration: none; font-size: 12px; }
-.phone-link:hover { text-decoration: underline; }
-.btn-contact {
-  background: var(--navy); color: white; border: none; border-radius: 6px;
-  padding: 5px 12px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
-  transition: background 0.15s; font-family: 'Montserrat', Verdana, sans-serif;
+.contacted-toggle.on { background: #16A34A; border-color: #16A34A; }
+.contacted-toggle.on::after { content: '✓'; color: white; font-size: 12px; font-weight: 800; }
+.btn-action {
+  background: var(--p3); color: white; border: none; border-radius: 8px;
+  padding: 6px 14px; font-size: 11px; font-weight: 700; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s; white-space: nowrap;
 }
-.btn-contact:hover { background: var(--navy2); }
-.motivo-pill {
-  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
-}
-.motivo-dormant { background: #FEE2E2; color: var(--red); }
-.motivo-ht-mt { background: #FEF3C7; color: #92400E; }
-.motivo-mv { background: #FDE8D8; color: #9A3412; }
+.btn-action:hover { background: var(--p3-dark); }
 
-/* ── Drawer ──────────────────────────────────────────────── */
-#drawer-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40;
-  display: none; backdrop-filter: blur(2px);
+/* ─── LOADING ────────────────────────────────────────────── */
+#loading-overlay {
+  position: fixed; inset: 0; background: rgba(244,243,251,0.9); z-index: 80;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
 }
+.spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--p3); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--text-2); font-weight: 500; }
+
+/* ─── DRAWER ─────────────────────────────────────────────── */
+#drawer-overlay { position: fixed; inset: 0; background: rgba(30,28,74,0.35); z-index: 40; display: none; backdrop-filter: blur(3px); }
 #drawer {
-  position: fixed; right: 0; top: 0; bottom: 0; width: 420px; max-width: 100vw;
+  position: fixed; right: 0; top: 0; bottom: 0; width: 440px; max-width: 100vw;
   background: white; z-index: 50; display: flex; flex-direction: column;
-  box-shadow: -4px 0 24px rgba(0,0,0,0.12); transform: translateX(100%); transition: transform 0.25s ease;
+  box-shadow: -8px 0 40px rgba(45,43,107,0.15); transform: translateX(100%); transition: transform 0.25s ease;
 }
 #drawer.open { transform: translateX(0); }
-.drawer-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
-.drawer-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-.drawer-sub { font-size: 12px; color: var(--gray); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.drawer-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray); line-height: 1; }
+.drawer-header { padding: 22px 24px 18px; border-bottom: 1px solid var(--border); position: relative; }
+.drawer-cluster-tag { margin-bottom: 8px; }
+.drawer-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -0.3px; }
+.drawer-motivo { font-size: 11px; color: var(--text-2); font-weight: 500; margin-top: 4px; }
+.drawer-close { position: absolute; top: 18px; right: 20px; background: var(--p3-bg); border: none; font-size: 18px; cursor: pointer; color: var(--text-2); line-height: 1; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.drawer-close:hover { background: var(--p3-pale); color: var(--p3); }
 .drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
 .drawer-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
 
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.info-item { background: #F9FAFB; border-radius: 8px; padding: 10px 12px; }
-.info-label { font-size: 10px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-bottom: 3px; }
-.info-value { font-size: 14px; font-weight: 600; }
-.info-value.mono { font-family: monospace; font-size: 12px; }
-.copy-btn { font-size: 10px; color: var(--blue); cursor: pointer; margin-left: 6px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-item { background: var(--p3-bg); border-radius: 10px; padding: 12px 14px; border: 1px solid var(--border); }
+.info-label { font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px; }
+.info-value { font-size: 14px; font-weight: 700; color: var(--text); }
+.info-value.mono { font-size: 11px; font-family: monospace; }
+.copy-btn { font-size: 10px; color: var(--p3); cursor: pointer; margin-left: 5px; font-weight: 600; }
 
 .form-section { display: flex; flex-direction: column; gap: 12px; }
-.form-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; display: block; }
-.form-select, .form-textarea, .form-input {
-  width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
-  font-size: 13px; font-family: inherit; background: white; color: var(--navy);
+.form-label { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
+.form-select, .form-textarea {
+  width: 100%; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 13px; font-family: var(--font); background: white; color: var(--text);
   transition: border-color 0.15s;
 }
-.form-select:focus, .form-textarea:focus, .form-input:focus { outline: none; border-color: var(--blue); }
+.form-select:focus, .form-textarea:focus { outline: none; border-color: var(--p3-light); }
 .form-textarea { min-height: 80px; resize: vertical; }
-.form-row { display: flex; align-items: center; gap: 10px; }
-.toggle-label { font-size: 13px; font-weight: 500; }
-
-.toggle {
-  position: relative; width: 40px; height: 22px; flex-shrink: 0;
-}
+.form-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--p3-bg); border-radius: 10px; border: 1px solid var(--border); }
+.toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
 .toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
-  position: absolute; inset: 0; background: #D1D5DB; border-radius: 22px; cursor: pointer; transition: 0.2s;
-}
-.toggle-slider:before {
-  content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px;
-  background: white; border-radius: 50%; transition: 0.2s;
-}
-.toggle input:checked + .toggle-slider { background: var(--green); }
+.toggle-slider { position: absolute; inset: 0; background: #D1D5DB; border-radius: 22px; cursor: pointer; transition: 0.2s; }
+.toggle-slider:before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+.toggle input:checked + .toggle-slider { background: #16A34A; }
 .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+.toggle-label { font-size: 13px; font-weight: 600; color: var(--text); }
 
 .btn-primary {
-  width: 100%; padding: 11px; background: var(--navy); color: white; border: none;
-  border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;
-  font-family: 'Montserrat', Verdana, sans-serif; letter-spacing: 0.3px;
+  width: 100%; padding: 11px; background: var(--p3); color: white; border: none;
+  border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s;
 }
-.btn-primary:hover { background: var(--navy2); }
+.btn-primary:hover { background: var(--p3-dark); }
 .btn-primary:disabled { background: #9CA3AF; cursor: not-allowed; }
 
-.history-section { border-top: 1px solid var(--border); padding-top: 16px; }
-.history-title { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
-.history-item { padding: 10px 12px; background: #F9FAFB; border-radius: 8px; margin-bottom: 8px; }
-.history-meta { font-size: 11px; color: var(--gray); }
-.history-text { font-size: 12px; margin-top: 4px; }
+.history-section { padding-top: 4px; }
+.history-title { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.history-item { padding: 10px 12px; background: var(--p3-bg); border-radius: 10px; margin-bottom: 7px; border: 1px solid var(--border); }
+.history-meta { font-size: 10px; color: var(--text-2); font-weight: 500; }
+.history-text { font-size: 12px; margin-top: 3px; color: var(--text); }
 
-/* ── Feedback Modal ───────────────────────────────────────── */
+/* ─── KANBAN ─────────────────────────────────────────────── */
+.kanban-top { padding: 0 28px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kanban-info { font-size: 12px; color: var(--text-2); font-weight: 500; }
+.kanban-refresh { background: var(--p3-bg); border: 1.5px solid var(--border); color: var(--p3); border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+.kanban-refresh:hover { background: var(--p3-pale); }
+.kanban-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 0 28px 14px; }
+.kleg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-2); font-weight: 500; }
+.kleg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 0 28px 32px; }
+.kanban-col { background: var(--white); border-radius: 16px; padding: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.kanban-col-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-2); }
+.kc-count { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.col-0 .kanban-col-title { color: var(--p3-dark); } .col-0 .kc-count { background: var(--p3-pale); color: var(--p3-dark); }
+.col-1 .kc-count { background: #DBEAFE; color: #1E40AF; }
+.col-2 .kc-count { background: #FEF3C7; color: #92400E; }
+.col-3 .kc-count { background: #DCFCE7; color: #15803D; }
+.kanban-col-body { display: flex; flex-direction: column; gap: 8px; min-height: 80px; }
+.kanban-col-body.drag-over { background: var(--p3-pale); border-radius: 10px; outline: 2px dashed var(--p3-light); }
+.kcard {
+  background: var(--p3-bg); border-radius: 12px; padding: 12px 14px;
+  border: 1px solid var(--border); cursor: grab; transition: all 0.15s; user-select: none;
+  border-left: 3px solid transparent;
+}
+.kcard:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.kcard.dragging { opacity: 0.4; transform: scale(0.97); cursor: grabbing; }
+.kcard.p1 { border-left-color: #DC2626; }
+.kcard.p2 { border-left-color: #7C3AED; }
+.kcard.p3 { border-left-color: #D97706; }
+.kcard.p4 { border-left-color: #2563EB; }
+.kcard.p5 { border-left-color: #9CA3AF; }
+.kcard-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 5px; line-height: 1.3; }
+.kcard-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; display: inline-block; margin-bottom: 6px; }
+.kcard-badge.p1 { background: #FEE2E2; color: #991B1B; }
+.kcard-badge.p2 { background: #EDE9FE; color: #5B21B6; }
+.kcard-badge.p3 { background: #FEF3C7; color: #92400E; }
+.kcard-badge.p4 { background: #DBEAFE; color: #1E40AF; }
+.kcard-badge.p5 { background: #F3F4F6; color: #374151; }
+.kcard-gtv { font-size: 13px; font-weight: 800; color: var(--p3-dark); margin-bottom: 8px; }
+.kcard-gtv-sub { font-size: 10px; color: var(--text-2); font-weight: 500; }
+.kcard-footer { display: flex; align-items: center; gap: 6px; }
+.kcard-phone { font-size: 11px; color: var(--p3); text-decoration: none; font-weight: 600; flex: 1; }
+.kcard-phone:hover { text-decoration: underline; }
+.kcard-reg { background: var(--p3); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 10px; font-weight: 700; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+.kcard-reg:hover { background: var(--p3-dark); }
+.kanban-empty { font-size: 12px; color: var(--text-2); text-align: center; padding: 20px 0; font-weight: 500; }
+
+/* ─── FEEDBACK MODAL ─────────────────────────────────────── */
 #feedback-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 60;
-  display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+  position: fixed; inset: 0; background: rgba(30,28,74,0.4); z-index: 60;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
 }
 .feedback-modal {
-  background: white; border-radius: 16px; padding: 28px; width: 460px; max-width: 96vw;
+  background: white; border-radius: 20px; padding: 32px; width: 480px; max-width: 96vw;
   box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 16px;
 }
-.feedback-modal h2 { font-size: 17px; font-weight: 700; }
-.feedback-modal p { font-size: 13px; color: var(--gray); }
+.feedback-modal h2 { font-size: 18px; font-weight: 800; color: var(--text); }
+.feedback-modal p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-.btn-secondary {
-  padding: 8px 16px; background: white; border: 1.5px solid var(--border); border-radius: 8px;
-  font-size: 13px; font-weight: 600; cursor: pointer; color: var(--navy);
-}
-.btn-submit {
-  padding: 8px 20px; background: var(--navy); color: white; border: none;
-  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
-}
+.btn-secondary { padding: 9px 18px; background: white; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text); font-family: var(--font); }
+.btn-submit { padding: 9px 22px; background: var(--p3); color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+.btn-submit:hover { background: var(--p3-dark); }
 
-/* ── Loading / toast ─────────────────────────────────────── */
-#loading-overlay {
-  position: fixed; inset: 0; background: rgba(249,250,251,0.9); z-index: 80;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-}
-.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--navy); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 13px; color: var(--gray); }
-
+/* ─── TOAST ──────────────────────────────────────────────── */
 #toast {
   position: fixed; bottom: 24px; right: 24px; z-index: 90;
-  background: var(--navy); color: white; padding: 12px 20px; border-radius: 10px;
-  font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+  background: var(--p3-dark); color: white; padding: 12px 20px; border-radius: 12px;
+  font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg);
   transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none;
 }
 #toast.show { transform: translateY(0); opacity: 1; }
 #toast.error { background: var(--red); }
 #toast.success { background: #065F46; }
 
-.search-bar {
-  width: 100%; padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px;
-  font-size: 13px; margin-bottom: 14px; background: white;
-}
-.search-bar:focus { outline: none; border-color: var(--blue); }
-
-/* ── Kanban ───────────────────────────────────────────────── */
-.kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 20px 24px 32px; }
-.kanban-col { background: #F3F4F6; border-radius: 12px; padding: 12px; min-height: 200px; }
-.kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 2px; }
-.kanban-col-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); }
-.kanban-col-count { background: #D1D5DB; color: #374151; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
-.kanban-col.col-contactar .kanban-col-count { background: #FEF3C7; color: #92400E; }
-.kanban-col.col-contato .kanban-col-count { background: #DBEAFE; color: var(--blue); }
-.kanban-col.col-agendado .kanban-col-count { background: #EDE9FE; color: #5B21B6; }
-.kanban-col.col-concluido .kanban-col-count { background: #DCFCE7; color: var(--green); }
-.kanban-col-body { display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
-.kanban-col-body.drag-over { background: rgba(29,78,216,0.06); border-radius: 8px; outline: 2px dashed var(--blue); }
-
-.kanban-card {
-  background: white; border-radius: 10px; padding: 12px 14px;
-  box-shadow: var(--shadow); border: 1px solid var(--border);
-  cursor: grab; transition: box-shadow 0.15s, transform 0.15s; user-select: none;
-}
-.kanban-card:active { cursor: grabbing; }
-.kanban-card.dragging { opacity: 0.4; transform: scale(0.97); }
-.kanban-card.priority-1 { border-left: 3px solid #DC2626; }
-.kanban-card.priority-2 { border-left: 3px solid #F59E0B; }
-.kanban-card.priority-3 { border-left: 3px solid #DD6B20; }
-.kanban-card.priority-4 { border-left: 3px solid #6366F1; }
-.kanban-card.priority-5 { border-left: 3px solid #9CA3AF; }
-
-.kcard-name { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 5px; line-height: 1.3; }
-.kcard-motivo { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 8px; display: inline-block; margin-bottom: 6px; }
-.kcard-motivo.p1 { background: #FEE2E2; color: #991B1B; }
-.kcard-motivo.p2 { background: #FEF3C7; color: #92400E; }
-.kcard-motivo.p3 { background: #FFEDD5; color: #9A3412; }
-.kcard-motivo.p4 { background: #EDE9FE; color: #5B21B6; }
-.kcard-motivo.p5 { background: #F3F4F6; color: #374151; }
-.kcard-stats { display: flex; gap: 8px; margin-bottom: 8px; }
-.kcard-stat { font-size: 11px; color: var(--gray); }
-.kcard-stat strong { color: var(--navy); font-weight: 600; }
-.kcard-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.kcard-phone { font-size: 11px; color: var(--blue); text-decoration: none; flex: 1; }
-.kcard-phone:hover { text-decoration: underline; }
-.kcard-btn { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px; border: none; cursor: pointer; white-space: nowrap; }
-.kcard-btn-log { background: var(--navy); color: white; }
-.kcard-btn-log:hover { background: #2D3748; }
-
-.kanban-priority-legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 0 24px 12px; }
-.klegend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); }
-.klegend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+/* ─── VIEW PANELS ────────────────────────────────────────── */
+.view { display: none; }
+.view.active { display: block; }
 </style>
 </head>
 <body>
 
-<!-- ── Login Screen ───────────────────────────────────────── -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-logo">P<span>3</span></div>
-    <div class="login-tagline">Portão 3</div>
+    <div class="login-logo-wrap">
+      <div class="login-logo-icon">P3</div>
+      <div class="login-logo-text">
+        <div class="login-logo-name">Portão 3</div>
+        <div class="login-logo-sub">Cluster CRM</div>
+      </div>
+    </div>
     <div class="login-divider"></div>
-    <div class="login-subtitle">Acesso ao Cluster CRM interno</div>
+    <div class="login-headline">Bem-vindo de volta</div>
+    <div class="login-sub">Faça login com sua conta Portão 3 para acessar o painel de clientes.</div>
     <button class="login-btn" onclick="signIn()">
       <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Entrar com Google
+      Entrar com Google Workspace
     </button>
     <div class="login-error" id="login-error"></div>
-    <div class="login-note">Acesso restrito a contas @portao3.com.br</div>
+    <div class="login-note">Acesso restrito a @portao3.com.br</div>
   </div>
 </div>
 
-<!-- ── Setup Banner ────────────────────────────────────────── -->
-<div id="setup-banner">
-  ⚠️ <strong>Log Sheet não configurada.</strong> Clique para criar a planilha de log automaticamente.
-  <button onclick="createLogSheet()">Criar agora</button>
-</div>
-
-<!-- ── Main App ────────────────────────────────────────────── -->
+<!-- APP -->
 <div id="app">
-  <div class="header">
-    <div class="header-logo">
-      P<span class="header-logo-accent">3</span>
-      <span class="header-logo-divider"></span>
-      <span class="header-logo-sub">Cluster CRM</span>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">P3</div>
+      <div class="sidebar-brand-text">
+        <div class="sidebar-brand-name">Cluster CRM</div>
+        <div class="sidebar-brand-sub">Portão 3</div>
+      </div>
     </div>
-    <div class="header-period" id="period-label">📅 —</div>
-    <div class="header-right">
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Clusters</div>
+      <div class="nav-item active" onclick="switchView('ht')">
+        <span class="nav-icon">●</span>
+        <span class="nav-label">High Touch</span>
+        <span class="nav-badge" id="nb-ht">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('mt')">
+        <span class="nav-icon">●</span>
+        <span class="nav-label">Mid Touch</span>
+        <span class="nav-badge" id="nb-mt">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('lt')">
+        <span class="nav-icon">●</span>
+        <span class="nav-label">Low Touch</span>
+        <span class="nav-badge" id="nb-lt">—</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Prioridade</div>
+      <div class="nav-item danger" onclick="switchView('at')">
+        <span class="nav-icon">⚠</span>
+        <span class="nav-label">Atenção</span>
+        <span class="nav-badge" id="nb-at">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('kanban')">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Kanban</span>
+        <span class="nav-badge" id="nb-kb">—</span>
+      </div>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-period" id="period-label">📅 —</div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="user-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="user-name">—</div>
+        <div class="sidebar-user-email" id="user-email">—</div>
+      </div>
+      <button class="sidebar-signout" onclick="signOut()" title="Sair">↩</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div class="setup-banner" id="setup-banner">
+      ⚠️ Log Sheet não configurada — os contatos não serão salvos.
+      <button onclick="createLogSheet()">Criar agora</button>
+    </div>
+
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">High Touch</div>
+        <div class="topbar-subtitle" id="topbar-sub">Clientes com GTV ≥ R$100k em todos os meses</div>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="topbar-search" type="text" id="global-search" placeholder="Buscar cliente…" oninput="filterCurrent(this.value)">
+      </div>
       <button class="btn-feedback" onclick="openFeedback()">💬 Feedback</button>
-      <div class="user-info">
-        <div class="user-name" id="user-name">—</div>
-        <div class="user-email" id="user-email">—</div>
+    </div>
+
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loading-text">Carregando clusters…</div>
+    </div>
+
+    <div id="content">
+      <!-- Metrics -->
+      <div class="metrics" id="metrics-row">
+        <div class="metric m-ht"><div class="metric-accent"></div><div class="metric-label">High Touch</div><div class="metric-value" id="m-ht-n">—</div><div class="metric-sub" id="m-ht-g">—</div></div>
+        <div class="metric m-mt"><div class="metric-accent"></div><div class="metric-label">Mid Touch</div><div class="metric-value" id="m-mt-n">—</div><div class="metric-sub" id="m-mt-g">—</div></div>
+        <div class="metric m-lt"><div class="metric-accent"></div><div class="metric-label">Low Touch</div><div class="metric-value" id="m-lt-n">—</div><div class="metric-sub" id="m-lt-g">—</div></div>
+        <div class="metric m-at"><div class="metric-accent"></div><div class="metric-label">⚠ Atenção</div><div class="metric-value" id="m-at-n">—</div><div class="metric-sub" id="m-at-g">—</div></div>
+        <div class="metric m-total"><div class="metric-accent"></div><div class="metric-label">GTV Total 6m</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">High + Mid + Low</div></div>
       </div>
-      <div class="user-avatar" id="user-avatar"></div>
-      <button class="btn-signout" onclick="signOut()">Sair</button>
-    </div>
-  </div>
 
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <div class="loading-text" id="loading-text">Carregando clusters…</div>
-  </div>
-
-  <div id="main-content" style="display:none">
-    <div class="summary">
-      <div class="card ht"><div class="card-label">High Touch</div><div class="card-value" id="s-ht-n">—</div><div class="card-sub" id="s-ht-g">—</div></div>
-      <div class="card mt"><div class="card-label">Mid Touch</div><div class="card-value" id="s-mt-n">—</div><div class="card-sub" id="s-mt-g">—</div></div>
-      <div class="card lt"><div class="card-label">Low Touch</div><div class="card-value" id="s-lt-n">—</div><div class="card-sub" id="s-lt-g">—</div></div>
-      <div class="card at"><div class="card-label">⚠ Atenção</div><div class="card-value" id="s-at-n">—</div><div class="card-sub" id="s-at-g">—</div></div>
-      <div class="card total"><div class="card-label">GTV Total (6m)</div><div class="card-value" id="s-total-g">—</div><div class="card-sub">High + Mid + Low</div></div>
-    </div>
-
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('ht')"><span class="dot dot-ht"></span>High Touch<span class="badge badge-ht" id="t-ht">—</span></div>
-      <div class="tab" onclick="switchTab('mt')"><span class="dot dot-mt"></span>Mid Touch<span class="badge badge-mt" id="t-mt">—</span></div>
-      <div class="tab" onclick="switchTab('lt')"><span class="dot dot-lt"></span>Low Touch<span class="badge badge-lt" id="t-lt">—</span></div>
-      <div class="tab" onclick="switchTab('at')"><span class="dot dot-at"></span>⚠ Atenção<span class="badge badge-at" id="t-at">—</span></div>
-      <div class="tab" onclick="switchTab('kanban')">📋 Kanban<span class="badge" style="background:#E0E7FF;color:#3730A3" id="t-kb">—</span></div>
-    </div>
-
-    <div class="panel active" id="panel-ht">
-      <div class="panel-header"><span class="cluster-tag ht">● High Touch</span><span class="cluster-rule">Todos os meses ≥ R$ 100.000 · Excluindo bloqueados Swap</span></div>
-      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('ht', this.value)">
-      <table class="client-table" id="table-ht"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
-    </div>
-    <div class="panel" id="panel-mt">
-      <div class="panel-header"><span class="cluster-tag mt">● Mid Touch</span><span class="cluster-rule">Todos os meses entre R$ 50.000 e R$ 100.000</span></div>
-      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('mt', this.value)">
-      <table class="client-table" id="table-mt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
-    </div>
-    <div class="panel" id="panel-lt">
-      <div class="panel-header"><span class="cluster-tag lt">● Low Touch</span><span class="cluster-rule">Perenes em todos os meses · Média &lt; R$ 50.000</span></div>
-      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('lt', this.value)">
-      <table class="client-table" id="table-lt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
-    </div>
-    <div class="panel" id="panel-at">
-      <div class="panel-header"><span class="cluster-tag at">⚠ Atenção</span><span class="cluster-rule">Degradação de cluster ou adormecimento nos últimos 30 dias</span></div>
-      <input class="search-bar" type="text" placeholder="Buscar cliente…" oninput="filterTable('at', this.value)">
-      <table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table>
-    </div>
-
-    <!-- ── Kanban Panel ───────────────────────────────────── -->
-    <div class="panel" id="panel-kanban">
-      <div style="padding:16px 24px 4px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--navy)">📋 Kanban de Contatos Prioritários</div>
-          <div style="font-size:12px;color:var(--gray);margin-top:2px">Clientes que caíram de cluster · Sem bloqueio Swap · Sem conta encerrada pela P3</div>
-        </div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button onclick="loadKanban(true)" style="background:var(--navy);color:white;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">↺ Atualizar</button>
-        </div>
+      <!-- HT View -->
+      <div class="view active" id="view-ht">
+        <div class="view-header"><span class="view-badge ht">● High Touch</span><span class="view-rule">GTV ≥ R$100k em todos os 6 meses · Excluindo bloqueados Swap</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-ht"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
       </div>
-      <div class="kanban-priority-legend">
-        <span style="font-size:11px;font-weight:700;color:#374151;margin-right:4px">Prioridade:</span>
-        <span class="klegend-item"><span class="klegend-dot" style="background:#DC2626"></span>Adormecido — era HT</span>
-        <span class="klegend-item"><span class="klegend-dot" style="background:#F59E0B"></span>HT → Mid Touch</span>
-        <span class="klegend-item"><span class="klegend-dot" style="background:#DD6B20"></span>Adormecido — era MT</span>
-        <span class="klegend-item"><span class="klegend-dot" style="background:#6366F1"></span>HT → Low Touch</span>
-        <span class="klegend-item"><span class="klegend-dot" style="background:#9CA3AF"></span>MT → Low Touch</span>
+
+      <!-- MT View -->
+      <div class="view" id="view-mt">
+        <div class="view-header"><span class="view-badge mt">● Mid Touch</span><span class="view-rule">GTV entre R$50k e R$100k em todos os meses</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-mt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
       </div>
-      <div class="kanban-board">
-        <div class="kanban-col col-contactar" id="kb-col-0" ondragover="onDragOver(event)" ondrop="onDrop(event,'0')" ondragleave="onDragLeave(event)">
-          <div class="kanban-col-header">
-            <span class="kanban-col-title">📬 A Contactar</span>
-            <span class="kanban-col-count" id="kb-cnt-0">0</span>
-          </div>
-          <div class="kanban-col-body" id="kb-body-0"></div>
+
+      <!-- LT View -->
+      <div class="view" id="view-lt">
+        <div class="view-header"><span class="view-badge lt">● Low Touch</span><span class="view-rule">Perenes nos últimos 6 meses · Média abaixo de R$50k</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-lt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- AT View -->
+      <div class="view" id="view-at">
+        <div class="view-header"><span class="view-badge at">⚠ Atenção</span><span class="view-rule">Degradação de cluster ou adormecimento nos últimos 30 dias</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- KANBAN View -->
+      <div class="view" id="view-kanban">
+        <div class="view-header"><span class="view-badge kb">📋 Kanban de Contatos</span></div>
+        <div class="kanban-top">
+          <div class="kanban-info">Clientes em risco · Sem bloqueio Swap · Sem conta encerrada pela P3</div>
+          <button class="kanban-refresh" onclick="loadKanban(true)">↺ Atualizar</button>
         </div>
-        <div class="kanban-col col-contato" id="kb-col-1" ondragover="onDragOver(event)" ondrop="onDrop(event,'1')" ondragleave="onDragLeave(event)">
-          <div class="kanban-col-header">
-            <span class="kanban-col-title">📞 Em Contato</span>
-            <span class="kanban-col-count" id="kb-cnt-1">0</span>
-          </div>
-          <div class="kanban-col-body" id="kb-body-1"></div>
+        <div class="kanban-legend">
+          <span style="font-size:11px;font-weight:700;color:var(--text-2);margin-right:4px">Prioridade:</span>
+          <span class="kleg"><span class="kleg-dot" style="background:#DC2626"></span>Adormecido HT</span>
+          <span class="kleg"><span class="kleg-dot" style="background:#7C3AED"></span>HT → Mid Touch</span>
+          <span class="kleg"><span class="kleg-dot" style="background:#D97706"></span>Adormecido MT</span>
+          <span class="kleg"><span class="kleg-dot" style="background:#2563EB"></span>HT → Low Touch</span>
+          <span class="kleg"><span class="kleg-dot" style="background:#9CA3AF"></span>MT → Low Touch</span>
         </div>
-        <div class="kanban-col col-agendado" id="kb-col-2" ondragover="onDragOver(event)" ondrop="onDrop(event,'2')" ondragleave="onDragLeave(event)">
-          <div class="kanban-col-header">
-            <span class="kanban-col-title">📅 Retorno Agendado</span>
-            <span class="kanban-col-count" id="kb-cnt-2">0</span>
+        <div class="kanban-board">
+          <div class="kanban-col col-0" ondragover="onDragOver(event)" ondrop="onDrop(event,'0')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📬 A Contactar</span><span class="kc-count" id="kc-0">0</span></div>
+            <div class="kanban-col-body" id="kb-0"></div>
           </div>
-          <div class="kanban-col-body" id="kb-body-2"></div>
-        </div>
-        <div class="kanban-col col-concluido" id="kb-col-3" ondragover="onDragOver(event)" ondrop="onDrop(event,'3')" ondragleave="onDragLeave(event)">
-          <div class="kanban-col-header">
-            <span class="kanban-col-title">✅ Concluído</span>
-            <span class="kanban-col-count" id="kb-cnt-3">0</span>
+          <div class="kanban-col col-1" ondragover="onDragOver(event)" ondrop="onDrop(event,'1')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📞 Em Contato</span><span class="kc-count" id="kc-1">0</span></div>
+            <div class="kanban-col-body" id="kb-1"></div>
           </div>
-          <div class="kanban-col-body" id="kb-body-3"></div>
+          <div class="kanban-col col-2" ondragover="onDragOver(event)" ondrop="onDrop(event,'2')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📅 Retorno Agendado</span><span class="kc-count" id="kc-2">0</span></div>
+            <div class="kanban-col-body" id="kb-2"></div>
+          </div>
+          <div class="kanban-col col-3" ondragover="onDragOver(event)" ondrop="onDrop(event,'3')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">✅ Concluído</span><span class="kc-count" id="kc-3">0</span></div>
+            <div class="kanban-col-body" id="kb-3"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ── Contact Drawer ──────────────────────────────────────── -->
+<!-- DRAWER -->
 <div id="drawer-overlay" onclick="closeDrawer()"></div>
 <div id="drawer">
   <div class="drawer-header">
-    <button class="drawer-close" onclick="closeDrawer()">×</button>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <div class="drawer-cluster-tag"><span class="view-badge" id="d-cluster-tag">—</span></div>
     <div class="drawer-title" id="d-name">—</div>
-    <div class="drawer-sub">
-      <span class="cluster-tag" id="d-cluster-tag">—</span>
-      <span id="d-motivo" style="display:none"></span>
-    </div>
+    <div class="drawer-motivo" id="d-motivo"></div>
   </div>
   <div class="drawer-body">
     <div class="info-grid">
-      <div class="info-item">
-        <div class="info-label">Realm ID</div>
-        <div class="info-value mono" id="d-realm-id">—<span class="copy-btn" onclick="copyRealmId()">copiar</span></div>
-      </div>
-      <div class="info-item">
-        <div class="info-label">Telefone</div>
-        <div class="info-value"><a class="phone-link" id="d-phone" href="#">—</a></div>
-      </div>
-      <div class="info-item">
-        <div class="info-label">GTV Médio/mês</div>
-        <div class="info-value" id="d-avg">—</div>
-      </div>
-      <div class="info-item">
-        <div class="info-label">Total 6 meses</div>
-        <div class="info-value" id="d-total">—</div>
-      </div>
+      <div class="info-item"><div class="info-label">Realm ID</div><div class="info-value mono" id="d-realm-id">—<span class="copy-btn" onclick="copyRealmId()">copiar</span></div></div>
+      <div class="info-item"><div class="info-label">Telefone</div><div class="info-value"><a class="client-phone" id="d-phone" href="#">—</a></div></div>
+      <div class="info-item"><div class="info-label">Média/mês</div><div class="info-value" id="d-avg">—</div></div>
+      <div class="info-item"><div class="info-label">Total 6 meses</div><div class="info-value" id="d-total">—</div></div>
     </div>
-
     <div class="form-section">
-      <div>
-        <label class="form-label">Tipo de contato</label>
+      <div><label class="form-label">Tipo de contato</label>
         <select class="form-select" id="d-type">
           <option value="call">📞 Ligação</option>
           <option value="whatsapp">💬 WhatsApp</option>
@@ -522,22 +602,17 @@ body { font-family: 'Montserrat', Verdana, sans-serif; background: var(--bg); co
           <option value="other">Outro</option>
         </select>
       </div>
-      <div>
-        <label class="form-label">Notas do contato</label>
+      <div><label class="form-label">Notas</label>
         <textarea class="form-textarea" id="d-notes" placeholder="O que foi discutido, próximos passos…"></textarea>
       </div>
       <div class="form-row">
-        <label class="toggle">
-          <input type="checkbox" id="d-contacted-toggle">
-          <span class="toggle-slider"></span>
-        </label>
-        <span class="toggle-label">Marcar como <strong>contactado este mês</strong></span>
+        <label class="toggle"><input type="checkbox" id="d-contacted-toggle"><span class="toggle-slider"></span></label>
+        <span class="toggle-label">Contactado este mês</span>
       </div>
     </div>
-
     <div class="history-section">
       <div class="history-title">Histórico de contatos</div>
-      <div id="d-history"><div style="font-size:12px;color:#9CA3AF">Carregando histórico…</div></div>
+      <div id="d-history"><div style="font-size:12px;color:var(--text-2)">Carregando…</div></div>
     </div>
   </div>
   <div class="drawer-footer">
@@ -545,13 +620,12 @@ body { font-family: 'Montserrat', Verdana, sans-serif; background: var(--bg); co
   </div>
 </div>
 
-<!-- ── Feedback Modal ──────────────────────────────────────── -->
+<!-- FEEDBACK -->
 <div id="feedback-overlay">
   <div class="feedback-modal">
     <h2>💬 Feedback & Solicitações</h2>
-    <p>Compartilhe sugestões de melhoria, bugs ou novas funcionalidades para o CRM.</p>
-    <div>
-      <label class="form-label">Categoria</label>
+    <p>Sugestões de melhoria, bugs ou novas funcionalidades para o CRM.</p>
+    <div><label class="form-label">Categoria</label>
       <select class="form-select" id="fb-category">
         <option value="feature">🚀 Nova funcionalidade</option>
         <option value="improvement">✨ Melhoria</option>
@@ -559,9 +633,8 @@ body { font-family: 'Montserrat', Verdana, sans-serif; background: var(--bg); co
         <option value="other">Outro</option>
       </select>
     </div>
-    <div>
-      <label class="form-label">Descrição</label>
-      <textarea class="form-textarea" id="fb-text" placeholder="Descreva sua sugestão ou problema…" style="min-height:120px"></textarea>
+    <div><label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="fb-text" placeholder="Descreva sua sugestão…" style="min-height:100px"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeFeedback()">Cancelar</button>
@@ -573,160 +646,108 @@ body { font-family: 'Montserrat', Verdana, sans-serif; background: var(--bg); co
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// CONFIG — edite os valores abaixo conforme necessário
-// ══════════════════════════════════════════════════════════
+// ══ CONFIG ════════════════════════════════════════════════
 const CONFIG = {
   GOOGLE_CLIENT_ID: '309946949026-jjii91uevgct1c2ulitgros0jm4mpg51.apps.googleusercontent.com',
-  ALLOWED_DOMAIN:   'portao3.com.br',
-  BQ_PROJECT:       'p3-data-lake',
-  // Após criar a Log Sheet (botão no banner amarelo), cole o ID aqui:
+  ALLOWED_DOMAIN: 'portao3.com.br',
+  BQ_PROJECT: 'p3-data-lake',
   SHEET_ID: localStorage.getItem('p3_sheet_id') || '',
 };
 
-// ══════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════
+// ══ STATE ═════════════════════════════════════════════════
 const state = {
-  accessToken: null,
-  user: null,
-  clients: [],         // all rows from BQ
-  contactedThisMonth: new Set(), // realmIds contacted this month (from sheet)
-  drawerClient: null,
-  currentTab: 'ht',
-  monthRef: new Date().toISOString().slice(0, 7), // e.g. '2026-06'
+  accessToken: null, user: null, clients: [],
+  contactedThisMonth: new Set(), drawerClient: null,
+  currentView: 'ht', monthRef: new Date().toISOString().slice(0, 7),
 };
 
-// ══════════════════════════════════════════════════════════
-// GOOGLE AUTH
-// ══════════════════════════════════════════════════════════
-let tokenClient;
+const VIEW_META = {
+  ht: { title: 'High Touch', sub: 'GTV ≥ R$100k em todos os 6 meses · Excluindo bloqueados Swap' },
+  mt: { title: 'Mid Touch', sub: 'GTV entre R$50k e R$100k em todos os meses' },
+  lt: { title: 'Low Touch', sub: 'Perenes nos últimos 6 meses · Média abaixo de R$50k' },
+  at: { title: 'Atenção', sub: 'Degradação de cluster ou adormecimento nos últimos 30 dias' },
+  kanban: { title: 'Kanban de Contatos', sub: 'Clientes em risco · Prioridade de contato' },
+};
 
+// ══ AUTH ══════════════════════════════════════════════════
+let tokenClient;
 window.onload = () => {
-  if (typeof google === 'undefined') {
-    // GIS not loaded yet — retry
-    setTimeout(() => window.onload(), 500);
-    return;
-  }
+  if (typeof google === 'undefined') { setTimeout(() => window.onload(), 500); return; }
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CONFIG.GOOGLE_CLIENT_ID,
-    scope: [
-      'https://www.googleapis.com/auth/bigquery.readonly',
-      'https://www.googleapis.com/auth/spreadsheets',
-      'openid email profile'
-    ].join(' '),
+    scope: ['https://www.googleapis.com/auth/bigquery.readonly','https://www.googleapis.com/auth/spreadsheets','openid email profile'].join(' '),
     hosted_domain: CONFIG.ALLOWED_DOMAIN,
     callback: handleToken,
   });
 };
-
-function signIn() {
-  tokenClient.requestAccessToken({ prompt: '' });
-}
-
+function signIn() { tokenClient.requestAccessToken({ prompt: '' }); }
 async function handleToken(resp) {
-  if (resp.error) { showLoginError('Erro de autenticação: ' + resp.error); return; }
+  if (resp.error) { showLoginError('Erro: ' + resp.error); return; }
   state.accessToken = resp.access_token;
-
-  // Verify user info + domain
   try {
-    const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: `Bearer ${state.accessToken}` }
-    }).then(r => r.json());
-
-    if (!info.email?.endsWith('@' + CONFIG.ALLOWED_DOMAIN)) {
-      state.accessToken = null;
-      showLoginError(`Acesso permitido apenas para @${CONFIG.ALLOWED_DOMAIN}`);
-      return;
-    }
+    const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${state.accessToken}` } }).then(r => r.json());
+    if (!info.email?.endsWith('@' + CONFIG.ALLOWED_DOMAIN)) { state.accessToken = null; showLoginError(`Acesso permitido apenas para @${CONFIG.ALLOWED_DOMAIN}`); return; }
     state.user = info;
     showApp();
   } catch(e) { showLoginError('Não foi possível verificar o usuário.'); }
 }
-
 function signOut() {
   google.accounts.oauth2.revoke(state.accessToken);
-  state.accessToken = null;
-  state.user = null;
-  document.getElementById('app').style.display = 'none';
+  state.accessToken = null; state.user = null;
+  document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
 }
+function showLoginError(msg) { const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; }
 
-function showLoginError(msg) {
-  const el = document.getElementById('login-error');
-  el.textContent = msg; el.style.display = 'block';
-}
-
-// ══════════════════════════════════════════════════════════
-// APP INIT
-// ══════════════════════════════════════════════════════════
+// ══ APP INIT ══════════════════════════════════════════════
 async function showApp() {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-
-  // User info
-  document.getElementById('user-name').textContent = state.user.name || '';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('user-name').textContent = (state.user.name||'').split(' ').slice(0,2).join(' ');
   document.getElementById('user-email').textContent = state.user.email || '';
   const av = document.getElementById('user-avatar');
   if (state.user.picture) av.innerHTML = `<img src="${state.user.picture}">`;
   else av.textContent = (state.user.name||'U')[0].toUpperCase();
-
-  // Sheet setup
-  if (!CONFIG.SHEET_ID) {
-    document.getElementById('setup-banner').style.display = 'flex';
-  } else {
-    await loadContactedThisMonth();
-  }
-
-  // Load BQ data
+  if (!CONFIG.SHEET_ID) document.getElementById('setup-banner').style.display = 'flex';
+  else await loadContactedThisMonth();
   document.getElementById('loading-overlay').style.display = 'flex';
-  document.getElementById('loading-text').textContent = 'Buscando clusters no BigQuery…';
   await loadClusters();
   document.getElementById('loading-overlay').style.display = 'none';
-  document.getElementById('main-content').style.display = 'block';
 }
 
-// ══════════════════════════════════════════════════════════
-// BIGQUERY
-// ══════════════════════════════════════════════════════════
+// ══ BIGQUERY ══════════════════════════════════════════════
 const BQ_QUERY = `
 WITH params AS (
-  SELECT
-    DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH), MONTH) AS window_start,
-    DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 3 MONTH), MONTH) AS mid_point,
-    DATE_TRUNC(CURRENT_DATE(), MONTH)                              AS window_end,
-    DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)                     AS dormant_cutoff
+  SELECT DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH),MONTH) AS window_start,
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 3 MONTH),MONTH) AS mid_point,
+    DATE_TRUNC(CURRENT_DATE(),MONTH) AS window_end,
+    DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) AS dormant_cutoff
 ),
 blocked AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status='REPROVED'),
 phones AS (SELECT realmId, ANY_VALUE(phoneNumber) AS phone FROM \`p3-data-lake.consolidado.accounts\` WHERE phoneNumber IS NOT NULL AND status!='REPROVED' GROUP BY 1),
 monthly_6m AS (
-  SELECT t.realmId, t.realmName, FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,
-    ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv
-  FROM \`p3-data-lake.consolidado.transactions\` t, params p
-  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
-    AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end
-    AND t.realmId NOT IN (SELECT realmId FROM blocked)
+  SELECT t.realmId,t.realmName,FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv
+  FROM \`p3-data-lake.consolidado.transactions\` t,params p
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end AND t.realmId NOT IN(SELECT realmId FROM blocked)
   GROUP BY 1,2,3
 ),
-recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t, params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN(SELECT realmId FROM blocked)),
-rn AS (SELECT realmId, ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
-s6 AS (SELECT realmId, COUNT(*) AS ma, ROUND(AVG(gtv),0) AS avg_g, ROUND(MIN(gtv),0) AS min_g, ROUND(MAX(gtv),0) AS max_g, ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
-h1 AS (SELECT m.realmId, COUNT(*) AS ma, ROUND(MIN(m.gtv),0) AS min_g, ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m, params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
-h2 AS (SELECT m.realmId, COUNT(*) AS ma, ROUND(MIN(m.gtv),0) AS min_g, ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m, params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t,params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN(SELECT realmId FROM blocked)),
+rn AS (SELECT realmId,ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
+s6 AS (SELECT realmId,COUNT(*) AS ma,ROUND(AVG(gtv),0) AS avg_g,ROUND(MIN(gtv),0) AS min_g,ROUND(MAX(gtv),0) AS max_g,ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
+h1 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+h2 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
 wi AS (SELECT DATE_DIFF(window_end,window_start,MONTH) AS total_months FROM params),
 mc AS (
-  SELECT rn.realmName, s.realmId, s.ma AS months_active, wi.total_months,
-    s.avg_g AS avg_monthly_gtv, s.min_g AS min_monthly_gtv, s.max_g AS max_monthly_gtv, s.tot_g AS total_gtv_6m,
+  SELECT rn.realmName,s.realmId,s.ma AS months_active,wi.total_months,s.avg_g AS avg_monthly_gtv,s.min_g AS min_monthly_gtv,s.max_g AS max_monthly_gtv,s.tot_g AS total_gtv_6m,
     CASE WHEN s.min_g>=100000 THEN 'High Touch' WHEN s.min_g>=50000 THEN 'Mid Touch' WHEN s.ma=wi.total_months THEN 'Low Touch' END AS cluster,
-    CAST(NULL AS STRING) AS motivo, CAST(NULL AS FLOAT64) AS avg_h1, CAST(NULL AS FLOAT64) AS avg_h2
+    CAST(NULL AS STRING) AS motivo,CAST(NULL AS FLOAT64) AS avg_h1,CAST(NULL AS FLOAT64) AS avg_h2
   FROM s6 s JOIN rn USING(realmId) CROSS JOIN wi
   WHERE s.min_g>=50000 OR s.ma=wi.total_months
 ),
 ar AS (
-  SELECT rn.realmName, h1.realmId,
-    COALESCE(s6.ma,h1.ma) AS months_active, wi.total_months,
-    COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv, COALESCE(s6.min_g,h1.min_g) AS min_monthly_gtv,
-    COALESCE(s6.max_g,h1.avg_g) AS max_monthly_gtv, COALESCE(s6.tot_g,h1.avg_g*h1.ma) AS total_gtv_6m,
+  SELECT rn.realmName,h1.realmId,COALESCE(s6.ma,h1.ma) AS months_active,wi.total_months,
+    COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv,COALESCE(s6.min_g,h1.min_g) AS min_monthly_gtv,
+    COALESCE(s6.max_g,h1.avg_g) AS max_monthly_gtv,COALESCE(s6.tot_g,h1.avg_g*h1.ma) AS total_gtv_6m,
     'Atenção' AS cluster,
     CASE
       WHEN ra.realmId IS NULL AND h1.min_g>=100000 THEN 'Adormecido — era High Touch'
@@ -735,561 +756,332 @@ ar AS (
       WHEN h1.min_g>=100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'High Touch → Low Touch'
       WHEN h1.min_g>=50000 AND h1.min_g<100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'Mid Touch → Low Touch'
     END AS motivo,
-    h1.avg_g AS avg_h1, COALESCE(h2.avg_g,0) AS avg_h2
+    h1.avg_g AS avg_h1,COALESCE(h2.avg_g,0) AS avg_h2
   FROM h1 CROSS JOIN wi JOIN rn USING(realmId)
   LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId) LEFT JOIN recent_active ra ON ra.realmId=h1.realmId
-  WHERE h1.min_g>=50000 AND (ra.realmId IS NULL OR (h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR (h1.min_g>=50000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
+  WHERE h1.min_g>=50000 AND(ra.realmId IS NULL OR(h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR(h1.min_g>=50000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
 )
 SELECT mc.realmName,mc.realmId,mc.months_active,mc.total_months,mc.avg_monthly_gtv,mc.min_monthly_gtv,mc.max_monthly_gtv,mc.total_gtv_6m,mc.cluster,mc.motivo,mc.avg_h1,mc.avg_h2,p.phone FROM mc LEFT JOIN phones p USING(realmId) WHERE mc.cluster IS NOT NULL
 UNION ALL
 SELECT ar.realmName,ar.realmId,ar.months_active,ar.total_months,ar.avg_monthly_gtv,ar.min_monthly_gtv,ar.max_monthly_gtv,ar.total_gtv_6m,ar.cluster,ar.motivo,ar.avg_h1,ar.avg_h2,p.phone FROM ar LEFT JOIN phones p USING(realmId) WHERE ar.motivo IS NOT NULL
-ORDER BY cluster, total_gtv_6m DESC`;
+ORDER BY cluster,total_gtv_6m DESC`;
 
 async function bqQuery(sql) {
-  const r = await fetch(
-    `https://bigquery.googleapis.com/bigquery/v2/projects/${CONFIG.BQ_PROJECT}/queries`,
+  const r = await fetch(`https://bigquery.googleapis.com/bigquery/v2/projects/${CONFIG.BQ_PROJECT}/queries`,
     { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'},
-      body: JSON.stringify({ query: sql, useLegacySql: false, timeoutMs: 55000 }) }
-  );
+      body: JSON.stringify({ query: sql, useLegacySql: false, timeoutMs: 55000 }) });
   const data = await r.json();
   if (data.error) throw new Error(data.error.message);
-  if (!data.jobComplete) {
-    // Poll for results
-    return await pollBQJob(data.jobReference);
-  }
+  if (!data.jobComplete) return await pollBQJob(data.jobReference);
   return parseBQResult(data);
 }
-
 async function pollBQJob(jobRef) {
   for (let i = 0; i < 30; i++) {
     await new Promise(res => setTimeout(res, 2000));
-    const r = await fetch(
-      `https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/jobs/${jobRef.jobId}`,
-      { headers: { 'Authorization': `Bearer ${state.accessToken}` } }
-    );
-    const data = await r.json();
-    if (data.status?.state === 'DONE') {
-      const qr = await fetch(
-        `https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/queries/${jobRef.jobId}`,
-        { headers: { 'Authorization': `Bearer ${state.accessToken}` } }
-      ).then(r => r.json());
+    const data = await fetch(`https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/jobs/${jobRef.jobId}`, { headers:{'Authorization':`Bearer ${state.accessToken}`} }).then(r=>r.json());
+    if (data.status?.state==='DONE') {
+      const qr = await fetch(`https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/queries/${jobRef.jobId}`, { headers:{'Authorization':`Bearer ${state.accessToken}`} }).then(r=>r.json());
       return parseBQResult(qr);
     }
   }
   throw new Error('Query timeout');
 }
-
 function parseBQResult(data) {
-  const schema = (data.schema?.fields || []).map(f => f.name);
-  return (data.rows || []).map(row => {
-    const obj = {};
-    row.f.forEach((cell, i) => { obj[schema[i]] = cell.v; });
-    return obj;
-  });
+  const schema = (data.schema?.fields||[]).map(f=>f.name);
+  return (data.rows||[]).map(row => { const obj={}; row.f.forEach((c,i)=>obj[schema[i]]=c.v); return obj; });
 }
-
 async function loadClusters() {
-  try {
-    state.clients = await bqQuery(BQ_QUERY);
-    renderAll();
-  } catch(e) {
-    showToast('Erro ao carregar dados: ' + e.message, 'error');
-  }
+  try { state.clients = await bqQuery(BQ_QUERY); renderAll(); }
+  catch(e) { showToast('Erro ao carregar: '+e.message,'error'); }
 }
 
-// ══════════════════════════════════════════════════════════
-// GOOGLE SHEETS (persistence)
-// ══════════════════════════════════════════════════════════
+// ══ SHEETS ════════════════════════════════════════════════
 async function createLogSheet() {
   document.getElementById('setup-banner').querySelector('button').textContent = 'Criando…';
   try {
-    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${state.accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        properties: { title: `P3 CRM — Cluster Log` },
-        sheets: [
-          { properties: { title: 'Contacts' } },
-          { properties: { title: 'Feedback' } }
-        ]
-      })
-    }).then(r => r.json());
-
+    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets',
+      { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'},
+        body: JSON.stringify({ properties:{title:'P3 CRM — Cluster Log'}, sheets:[{properties:{title:'Contacts'}},{properties:{title:'Feedback'}}] }) }).then(r=>r.json());
     CONFIG.SHEET_ID = r.spreadsheetId;
     localStorage.setItem('p3_sheet_id', CONFIG.SHEET_ID);
-
-    // Add headers
-    await sheetsAppend('Contacts', [['Timestamp','RealmId','RealmName','Cluster','ContatadoPor','Email','TipoContato','Notas','MesRef']]);
-    await sheetsAppend('Feedback', [['Timestamp','SubmitPor','Email','Categoria','Texto']]);
-
+    await sheetsAppend('Contacts',[['Timestamp','RealmId','RealmName','Cluster','ContatadoPor','Email','TipoContato','Notas','MesRef']]);
+    await sheetsAppend('Feedback',[['Timestamp','SubmitPor','Email','Categoria','Texto']]);
     document.getElementById('setup-banner').style.display = 'none';
-    showToast('✅ Log Sheet criada! ID: ' + CONFIG.SHEET_ID, 'success');
+    showToast('✅ Log Sheet criada!','success');
     await loadContactedThisMonth();
-  } catch(e) {
-    showToast('Erro ao criar sheet: ' + e.message, 'error');
-    document.getElementById('setup-banner').querySelector('button').textContent = 'Criar agora';
-  }
+  } catch(e) { showToast('Erro: '+e.message,'error'); document.getElementById('setup-banner').querySelector('button').textContent='Criar agora'; }
 }
-
-async function sheetsAppend(sheetName, values) {
-  await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheetName)}!A1:append?valueInputOption=USER_ENTERED`,
-    { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'},
-      body: JSON.stringify({ values }) }
-  );
+async function sheetsAppend(sheet, values) {
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheet)}!A1:append?valueInputOption=USER_ENTERED`,
+    { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'}, body:JSON.stringify({values}) });
 }
-
-async function sheetsRead(sheetName, range) {
-  const r = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheetName)}!${range}`,
-    { headers: { 'Authorization': `Bearer ${state.accessToken}` } }
-  ).then(r => r.json());
-  return r.values || [];
+async function sheetsRead(sheet, range) {
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheet)}!${range}`, { headers:{'Authorization':`Bearer ${state.accessToken}`} }).then(r=>r.json());
+  return r.values||[];
 }
-
 async function loadContactedThisMonth() {
   if (!CONFIG.SHEET_ID) return;
-  try {
-    const rows = await sheetsRead('Contacts', 'A2:I5000');
-    state.contactedThisMonth = new Set(
-      rows.filter(r => r[8] === state.monthRef).map(r => r[1])
-    );
-  } catch(e) { /* sheet might be empty */ }
+  try { const rows = await sheetsRead('Contacts','A2:I5000'); state.contactedThisMonth = new Set(rows.filter(r=>r[8]===state.monthRef).map(r=>r[1])); } catch(e) {}
 }
 
-// ══════════════════════════════════════════════════════════
-// UI RENDERING
-// ══════════════════════════════════════════════════════════
-function fmt(val) {
-  const n = parseFloat(val) || 0;
-  if (n >= 1e6) return 'R$ ' + (n/1e6).toFixed(1).replace('.',',') + 'M';
-  if (n >= 1e3) return 'R$ ' + (n/1e3).toFixed(0) + 'K';
-  return 'R$ ' + n.toFixed(0);
+// ══ RENDER ════════════════════════════════════════════════
+function fmt(v) {
+  const n=parseFloat(v)||0;
+  if(n>=1e6) return 'R$ '+(n/1e6).toFixed(1).replace('.',',')+'M';
+  if(n>=1e3) return 'R$ '+(n/1e3).toFixed(0)+'K';
+  return 'R$ '+n.toFixed(0);
 }
 function fmtPhone(p) {
-  if (!p) return '—';
+  if(!p) return null;
   return p.replace('+55','').replace(/(\d{2})(\d{4,5})(\d{4})/,'($1) $2-$3').trim();
 }
 
 function renderAll() {
-  const ht = state.clients.filter(c => c.cluster === 'High Touch');
-  const mt = state.clients.filter(c => c.cluster === 'Mid Touch');
-  const lt = state.clients.filter(c => c.cluster === 'Low Touch');
-  const at = state.clients.filter(c => c.cluster === 'Atenção');
+  const ht = state.clients.filter(c=>c.cluster==='High Touch');
+  const mt = state.clients.filter(c=>c.cluster==='Mid Touch');
+  const lt = state.clients.filter(c=>c.cluster==='Low Touch');
+  const at = state.clients.filter(c=>c.cluster==='Atenção');
+  const totalGTV = [...ht,...mt,...lt].reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0);
 
-  const totalGTV = [...ht,...mt,...lt].reduce((s,r) => s+(parseFloat(r.total_gtv_6m)||0), 0);
+  // Metrics
+  document.getElementById('m-ht-n').textContent = ht.length;
+  document.getElementById('m-mt-n').textContent = mt.length;
+  document.getElementById('m-lt-n').textContent = lt.length;
+  document.getElementById('m-at-n').textContent = at.length;
+  document.getElementById('m-ht-g').textContent = fmt(ht.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
+  document.getElementById('m-mt-g').textContent = fmt(mt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
+  document.getElementById('m-lt-g').textContent = fmt(lt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
+  document.getElementById('m-at-g').textContent = at.length+' em risco';
+  document.getElementById('m-total').textContent = fmt(totalGTV);
 
-  // Summary
-  document.getElementById('s-ht-n').textContent = ht.length;
-  document.getElementById('s-mt-n').textContent = mt.length;
-  document.getElementById('s-lt-n').textContent = lt.length;
-  document.getElementById('s-at-n').textContent = at.length;
-  document.getElementById('s-ht-g').textContent = fmt(ht.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0)) + ' em 6m';
-  document.getElementById('s-mt-g').textContent = fmt(mt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0)) + ' em 6m';
-  document.getElementById('s-lt-g').textContent = fmt(lt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0)) + ' em 6m';
-  document.getElementById('s-at-g').textContent = at.length + ' cliente' + (at.length!==1?'s':'') + ' em risco';
-  document.getElementById('s-total-g').textContent = fmt(totalGTV);
+  // Sidebar badges
+  document.getElementById('nb-ht').textContent = ht.length;
+  document.getElementById('nb-mt').textContent = mt.length;
+  document.getElementById('nb-lt').textContent = lt.length;
+  document.getElementById('nb-at').textContent = at.length;
+  document.getElementById('nb-kb').textContent = at.length;
 
-  // Tab badges
-  document.getElementById('t-ht').textContent = ht.length;
-  document.getElementById('t-mt').textContent = mt.length;
-  document.getElementById('t-lt').textContent = lt.length;
-  document.getElementById('t-at').textContent = at.length;
-
-  // Period label
+  // Period
   const now = new Date();
   const m6 = new Date(now); m6.setMonth(now.getMonth()-6);
   document.getElementById('period-label').textContent =
     `📅 ${m6.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})} – ${new Date(now.getFullYear(),now.getMonth()-1).toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}`;
 
-  renderTable('ht', ht);
-  renderTable('mt', mt);
-  renderTable('lt', lt);
-  renderTableAt('at', at);
+  renderTable('ht',ht); renderTable('mt',mt); renderTable('lt',lt); renderTableAt('at',at);
 }
 
-function renderTable(tab, rows) {
-  const tbody = document.querySelector(`#table-${tab} tbody`);
+function renderTable(key, rows) {
+  const tbody = document.querySelector(`#table-${key} tbody`);
   tbody.innerHTML = '';
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:24px">Nenhum cliente neste cluster.</td></tr>'; return; }
-  rows.forEach((r, i) => {
-    const isContacted = state.contactedThisMonth.has(r.realmId);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${r.realmName}</strong><br><span style="font-size:11px;color:#9CA3AF">${r.realmId.slice(0,8)}…</span></td>
-      <td><a class="phone-link" href="tel:${r.phone||''}">${fmtPhone(r.phone)}</a></td>
-      <td>${fmt(r.avg_monthly_gtv)}</td>
-      <td style="font-weight:600">${fmt(r.total_gtv_6m)}</td>
-      <td style="font-size:12px;color:#6B7280">${r.months_active}/${r.total_months}</td>
-      <td>
-        <div class="contacted-toggle ${isContacted?'on':''}" id="toggle-${r.realmId.slice(0,8)}"
-             onclick="quickToggle('${r.realmId}', this)" title="${isContacted?'Contactado este mês':'Marcar como contactado'}"></div>
-      </td>
-      <td><button class="btn-contact" onclick="openDrawer('${r.realmId}')">Contato →</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function renderTableAt(tab, rows) {
-  const tbody = document.querySelector(`#table-${tab} tbody`);
-  tbody.innerHTML = '';
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:24px">🎉 Nenhum cliente em estado de atenção.</td></tr>'; return; }
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-2);padding:32px">Nenhum cliente neste cluster.</td></tr>'; return; }
   rows.forEach(r => {
-    const isContacted = state.contactedThisMonth.has(r.realmId);
-    const motivo = r.motivo || '';
-    let pillClass = 'motivo-mv';
-    if (motivo.includes('Adormecido')) pillClass = 'motivo-dormant';
-    else if (motivo.includes('→ Mid')) pillClass = 'motivo-ht-mt';
+    const isC = state.contactedThisMonth.has(r.realmId);
+    const ph = fmtPhone(r.phone);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${r.realmName}</strong><br><span style="font-size:11px;color:#9CA3AF">${r.realmId.slice(0,8)}…</span></td>
-      <td><a class="phone-link" href="tel:${r.phone||''}">${fmtPhone(r.phone)}</a></td>
-      <td><span class="motivo-pill ${pillClass}">${motivo}</span></td>
-      <td>${r.avg_h1 ? fmt(r.avg_h1) : '—'}</td>
-      <td>${r.avg_h2 > 0 ? fmt(r.avg_h2) : '—'}</td>
-      <td>
-        <div class="contacted-toggle ${isContacted?'on':''}" id="toggle-${r.realmId.slice(0,8)}"
-             onclick="quickToggle('${r.realmId}', this)"></div>
-      </td>
-      <td><button class="btn-contact" onclick="openDrawer('${r.realmId}')">Contato →</button></td>
-    `;
+      <td><div class="client-name">${r.realmName}</div><div class="client-id">${r.realmId.slice(0,8)}…</div></td>
+      <td>${ph ? `<a class="client-phone" href="tel:${r.phone}">${ph}</a>` : '<span style="color:var(--text-2);font-size:12px">—</span>'}</td>
+      <td><span class="gtv-pill">${fmt(r.avg_monthly_gtv)}</span></td>
+      <td style="font-size:14px;font-weight:800;color:var(--p3-dark)">${fmt(r.total_gtv_6m)}</td>
+      <td><span class="months-badge">${r.months_active}/${r.total_months}</span></td>
+      <td><div class="contacted-toggle ${isC?'on':''}" id="tg-${r.realmId.slice(0,8)}" onclick="quickToggle('${r.realmId}',this)" title="${isC?'Contactado':'Marcar'}"></div></td>
+      <td><button class="btn-action" onclick="openDrawer('${r.realmId}')">Registrar →</button></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function filterTable(tab, q) {
-  const rows = document.querySelectorAll(`#table-${tab} tbody tr`);
-  rows.forEach(tr => {
-    tr.style.display = tr.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+function renderTableAt(key, rows) {
+  const tbody = document.querySelector(`#table-${key} tbody`);
+  tbody.innerHTML = '';
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-2);padding:32px">🎉 Nenhum cliente em atenção.</td></tr>'; return; }
+  rows.forEach(r => {
+    const isC = state.contactedThisMonth.has(r.realmId);
+    const ph = fmtPhone(r.phone);
+    const motivo = r.motivo||'';
+    let cls = 'mp-mt-lt';
+    if (motivo.includes('Adormecido')&&motivo.includes('High')) cls='mp-dormant-ht';
+    else if (motivo.includes('Adormecido')) cls='mp-dormant-mt';
+    else if (motivo.includes('→ Mid')) cls='mp-ht-mt';
+    else if (motivo.includes('High Touch → Low')) cls='mp-ht-lt';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="client-name">${r.realmName}</div><div class="client-id">${r.realmId.slice(0,8)}…</div></td>
+      <td>${ph ? `<a class="client-phone" href="tel:${r.phone}">${ph}</a>` : '<span style="color:var(--text-2);font-size:12px">—</span>'}</td>
+      <td><span class="motivo-pill ${cls}">${motivo}</span></td>
+      <td style="font-weight:700">${r.avg_h1?fmt(r.avg_h1):'—'}</td>
+      <td style="font-weight:700;color:${parseFloat(r.avg_h2)>0?'var(--text)':'var(--red)'}">${parseFloat(r.avg_h2)>0?fmt(r.avg_h2):'—'}</td>
+      <td><div class="contacted-toggle ${isC?'on':''}" id="tg-${r.realmId.slice(0,8)}" onclick="quickToggle('${r.realmId}',this)"></div></td>
+      <td><button class="btn-action" onclick="openDrawer('${r.realmId}')">Registrar →</button></td>`;
+    tbody.appendChild(tr);
   });
 }
 
-function switchTab(tab) {
-  state.currentTab = tab;
-  const tabKeys = ['ht','mt','lt','at','kanban'];
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabKeys[i]===tab));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-'+tab).classList.add('active');
-  if (tab === 'kanban' && !kanbanClients.length) loadKanban(false);
+function filterCurrent(q) {
+  const v = state.currentView;
+  if (v==='kanban') return;
+  const rows = document.querySelectorAll(`#table-${v} tbody tr`);
+  rows.forEach(tr => tr.style.display = tr.textContent.toLowerCase().includes(q.toLowerCase())?'':'none');
 }
 
-// ══════════════════════════════════════════════════════════
-// CONTACT DRAWER
-// ══════════════════════════════════════════════════════════
+function switchView(view) {
+  state.currentView = view;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navMap = {ht:0,mt:1,lt:2,at:3,kanban:4};
+  document.querySelectorAll('.nav-item')[navMap[view]]?.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.getElementById('topbar-title').textContent = VIEW_META[view].title;
+  document.getElementById('topbar-sub').textContent = VIEW_META[view].sub;
+  document.getElementById('global-search').value = '';
+  if (view==='kanban' && !kanbanClients.length) loadKanban(false);
+}
+
+// ══ DRAWER ════════════════════════════════════════════════
 function openDrawer(realmId) {
-  const client = state.clients.find(c => c.realmId === realmId);
-  if (!client) return;
-  state.drawerClient = client;
-
-  document.getElementById('d-name').textContent = client.realmName;
-  document.getElementById('d-realm-id').childNodes[0].textContent = client.realmId.slice(0,18) + '…';
-  document.getElementById('d-realm-id').dataset.full = client.realmId;
-
-  const phoneEl = document.getElementById('d-phone');
-  phoneEl.textContent = fmtPhone(client.phone);
-  phoneEl.href = client.phone ? `tel:${client.phone}` : '#';
-
-  document.getElementById('d-avg').textContent = fmt(client.avg_monthly_gtv);
-  document.getElementById('d-total').textContent = fmt(client.total_gtv_6m);
+  const c = state.clients.find(x=>x.realmId===realmId);
+  if (!c) return;
+  state.drawerClient = c;
+  document.getElementById('d-name').textContent = c.realmName;
+  const rid = document.getElementById('d-realm-id');
+  rid.childNodes[0].textContent = c.realmId.slice(0,18)+'…';
+  rid.dataset.full = c.realmId;
+  const ph = document.getElementById('d-phone');
+  ph.textContent = fmtPhone(c.phone)||'—'; ph.href = c.phone?`tel:${c.phone}`:'#';
+  document.getElementById('d-avg').textContent = fmt(c.avg_monthly_gtv);
+  document.getElementById('d-total').textContent = fmt(c.total_gtv_6m);
   document.getElementById('d-notes').value = '';
   document.getElementById('d-type').value = 'call';
-
-  const isContacted = state.contactedThisMonth.has(realmId);
-  document.getElementById('d-contacted-toggle').checked = isContacted;
-
-  // Cluster tag
-  const tagEl = document.getElementById('d-cluster-tag');
-  tagEl.textContent = client.cluster;
-  tagEl.className = 'cluster-tag ' + { 'High Touch':'ht','Mid Touch':'mt','Low Touch':'lt','Atenção':'at' }[client.cluster];
-
-  // Motivo (Atenção)
-  const mEl = document.getElementById('d-motivo');
-  if (client.motivo) { mEl.textContent = client.motivo; mEl.style.display = 'inline'; }
-  else { mEl.style.display = 'none'; }
-
-  // History
+  document.getElementById('d-contacted-toggle').checked = state.contactedThisMonth.has(realmId);
+  const tag = document.getElementById('d-cluster-tag');
+  const cls = {High Touch:'ht',Mid Touch:'mt',Low Touch:'lt',Atenção:'at'}[c.cluster];
+  tag.className = 'view-badge '+(cls||'mt'); tag.textContent = c.cluster;
+  const mot = document.getElementById('d-motivo');
+  mot.textContent = c.motivo||''; mot.style.display = c.motivo?'block':'none';
   loadHistory(realmId);
-
   document.getElementById('drawer-overlay').style.display = 'block';
-  setTimeout(() => document.getElementById('drawer').classList.add('open'), 10);
+  setTimeout(()=>document.getElementById('drawer').classList.add('open'),10);
 }
-
 function closeDrawer() {
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawer-overlay').style.display = 'none';
   state.drawerClient = null;
 }
-
 async function loadHistory(realmId) {
   const el = document.getElementById('d-history');
-  if (!CONFIG.SHEET_ID) { el.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Log Sheet não configurada.</div>'; return; }
+  if (!CONFIG.SHEET_ID) { el.innerHTML = '<div style="font-size:12px;color:var(--text-2)">Log Sheet não configurada.</div>'; return; }
   try {
-    const rows = await sheetsRead('Contacts', 'A2:I5000');
-    const clientRows = rows.filter(r => r[1] === realmId).reverse().slice(0, 10);
-    if (!clientRows.length) { el.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Nenhum contato registrado.</div>'; return; }
-    el.innerHTML = clientRows.map(r => `
-      <div class="history-item">
-        <div class="history-meta">${r[0]} · <strong>${r[4]}</strong> · ${r[6]} · ${r[8]}</div>
-        <div class="history-text">${r[7] || '—'}</div>
-      </div>`).join('');
-  } catch(e) { el.innerHTML = '<div style="font-size:12px;color:#9CA3AF">Erro ao carregar histórico.</div>'; }
+    const rows = await sheetsRead('Contacts','A2:I5000');
+    const cr = rows.filter(r=>r[1]===realmId).reverse().slice(0,10);
+    if (!cr.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-2)">Nenhum contato registrado.</div>'; return; }
+    el.innerHTML = cr.map(r=>`<div class="history-item"><div class="history-meta">${r[0]} · <strong>${r[4]}</strong> · ${r[6]}</div><div class="history-text">${r[7]||'—'}</div></div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="font-size:12px;color:var(--text-2)">Erro ao carregar.</div>'; }
 }
-
 async function saveContact() {
-  const client = state.drawerClient;
-  if (!client) return;
-
+  const c = state.drawerClient; if (!c) return;
   const btn = document.getElementById('d-save-btn');
-  btn.disabled = true; btn.textContent = 'Salvando…';
-
-  const contactType = document.getElementById('d-type').value;
-  const notes       = document.getElementById('d-notes').value.trim();
-  const isContacted = document.getElementById('d-contacted-toggle').checked;
-  const ts          = new Date().toLocaleString('pt-BR');
-
+  btn.disabled=true; btn.textContent='Salvando…';
+  const type=document.getElementById('d-type').value, notes=document.getElementById('d-notes').value.trim(), isC=document.getElementById('d-contacted-toggle').checked;
   if (CONFIG.SHEET_ID) {
-    try {
-      await sheetsAppend('Contacts', [[
-        ts, client.realmId, client.realmName, client.cluster,
-        state.user.name, state.user.email,
-        contactType, notes, isContacted ? state.monthRef : ''
-      ]]);
-    } catch(e) { showToast('Erro ao salvar no Sheets: ' + e.message, 'error'); }
+    try { await sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,c.cluster,state.user.name,state.user.email,type,notes,isC?state.monthRef:'']]); } catch(e) {}
   }
-
-  // Update in-memory state
-  if (isContacted) {
-    state.contactedThisMonth.add(client.realmId);
-    const tEl = document.getElementById('toggle-' + client.realmId.slice(0,8));
-    if (tEl) tEl.classList.add('on');
-  }
-
-  btn.disabled = false; btn.textContent = 'Salvar registro';
-  showToast('✅ Contato registrado!', 'success');
-  loadHistory(client.realmId);
+  if (isC) { state.contactedThisMonth.add(c.realmId); const tg=document.getElementById('tg-'+c.realmId.slice(0,8)); if(tg) tg.classList.add('on'); }
+  btn.disabled=false; btn.textContent='Salvar registro';
+  showToast('✅ Contato registrado!','success');
+  loadHistory(c.realmId);
 }
-
 async function quickToggle(realmId, el) {
-  const client = state.clients.find(c => c.realmId === realmId);
-  if (!client) return;
-  const wasOn = el.classList.contains('on');
-  el.classList.toggle('on');
-
-  if (CONFIG.SHEET_ID) {
-    const ts = new Date().toLocaleString('pt-BR');
-    await sheetsAppend('Contacts', [[
-      ts, realmId, client.realmName, client.cluster,
-      state.user.name, state.user.email,
-      'quick-toggle', wasOn ? '(desmarcado)' : '(marcado)',
-      wasOn ? '' : state.monthRef
-    ]]);
-  }
-  if (!wasOn) state.contactedThisMonth.add(realmId);
-  else state.contactedThisMonth.delete(realmId);
-  showToast(wasOn ? 'Desmarcado' : '✅ Marcado como contactado', 'success');
+  const c = state.clients.find(x=>x.realmId===realmId); if (!c) return;
+  const wasOn = el.classList.contains('on'); el.classList.toggle('on');
+  if (CONFIG.SHEET_ID) { try { await sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),realmId,c.realmName,c.cluster,state.user.name,state.user.email,'quick-toggle',wasOn?'(desmarcado)':'(marcado)',wasOn?'':state.monthRef]]); } catch(e) {} }
+  if (!wasOn) state.contactedThisMonth.add(realmId); else state.contactedThisMonth.delete(realmId);
+  showToast(wasOn?'Desmarcado':'✅ Contactado','success');
 }
+function copyRealmId() { navigator.clipboard.writeText(document.getElementById('d-realm-id').dataset.full).then(()=>showToast('Realm ID copiado!','success')); }
 
-function copyRealmId() {
-  const id = document.getElementById('d-realm-id').dataset.full;
-  navigator.clipboard.writeText(id).then(() => showToast('Realm ID copiado!', 'success'));
-}
-
-// ══════════════════════════════════════════════════════════
-// FEEDBACK
-// ══════════════════════════════════════════════════════════
-function openFeedback() { document.getElementById('feedback-overlay').style.display = 'flex'; }
-function closeFeedback() { document.getElementById('feedback-overlay').style.display = 'none'; }
-
-async function submitFeedback() {
-  const category = document.getElementById('fb-category').value;
-  const text     = document.getElementById('fb-text').value.trim();
-  if (!text) { showToast('Escreva o feedback antes de enviar.', 'error'); return; }
-
-  if (CONFIG.SHEET_ID) {
-    try {
-      await sheetsAppend('Feedback', [[
-        new Date().toLocaleString('pt-BR'),
-        state.user.name, state.user.email, category, text
-      ]]);
-    } catch(e) { showToast('Erro ao enviar feedback.', 'error'); return; }
-  }
-  document.getElementById('fb-text').value = '';
-  closeFeedback();
-  showToast('💬 Feedback enviado, obrigado!', 'success');
-}
-
-// ══════════════════════════════════════════════════════════
-// KANBAN
-// ══════════════════════════════════════════════════════════
+// ══ KANBAN ════════════════════════════════════════════════
 const KB_QUERY = `
-WITH params AS (
-  SELECT
-    DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH), MONTH) AS window_start,
-    DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 3 MONTH), MONTH) AS mid_point,
-    DATE_TRUNC(CURRENT_DATE(), MONTH) AS window_end,
-    DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AS dormant_cutoff
-),
-excluded AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status IN ('REPROVED','CLOSED')),
-phones AS (SELECT realmId, ANY_VALUE(phoneNumber) AS phone FROM \`p3-data-lake.consolidado.accounts\` WHERE phoneNumber IS NOT NULL AND status NOT IN ('REPROVED','CLOSED') GROUP BY 1),
-monthly_6m AS (
-  SELECT t.realmId, t.realmName, FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,
-    ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv
-  FROM \`p3-data-lake.consolidado.transactions\` t, params p
-  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
-    AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end
-    AND t.realmId NOT IN (SELECT realmId FROM excluded)
-  GROUP BY 1,2,3
-),
-recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t, params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN (SELECT realmId FROM excluded)),
-rn AS (SELECT realmId, ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
-h1 AS (SELECT m.realmId, COUNT(*) AS ma, ROUND(MIN(m.gtv),0) AS min_g, ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m, params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
-h2 AS (SELECT m.realmId, COUNT(*) AS ma, ROUND(MIN(m.gtv),0) AS min_g, ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m, params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
-s6 AS (SELECT realmId, COUNT(*) AS ma, ROUND(AVG(gtv),0) AS avg_g, ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
+WITH params AS (SELECT DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH),MONTH) AS window_start,DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 3 MONTH),MONTH) AS mid_point,DATE_TRUNC(CURRENT_DATE(),MONTH) AS window_end,DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) AS dormant_cutoff),
+excluded AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status IN('REPROVED','CLOSED')),
+phones AS (SELECT realmId,ANY_VALUE(phoneNumber) AS phone FROM \`p3-data-lake.consolidado.accounts\` WHERE phoneNumber IS NOT NULL AND status NOT IN('REPROVED','CLOSED') GROUP BY 1),
+monthly_6m AS (SELECT t.realmId,t.realmName,FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv FROM \`p3-data-lake.consolidado.transactions\` t,params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end AND t.realmId NOT IN(SELECT realmId FROM excluded) GROUP BY 1,2,3),
+recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t,params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN(SELECT realmId FROM excluded)),
+rn AS (SELECT realmId,ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
+h1 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+h2 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+s6 AS (SELECT realmId,COUNT(*) AS ma,ROUND(AVG(gtv),0) AS avg_g,ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
 atencao AS (
-  SELECT rn.realmName, h1.realmId, COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv,
-    COALESCE(s6.tot_g,h1.avg_g*h1.ma) AS total_gtv_6m, ph.phone,
-    CASE
-      WHEN ra.realmId IS NULL AND h1.min_g>=100000 THEN 'Adormecido — era High Touch'
-      WHEN ra.realmId IS NULL AND h1.min_g>=50000  THEN 'Adormecido — era Mid Touch'
-      WHEN h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000 AND h2.min_g>=50000 THEN 'High Touch → Mid Touch'
-      WHEN h1.min_g>=100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'High Touch → Low Touch'
-      WHEN h1.min_g>=50000 AND h1.min_g<100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'Mid Touch → Low Touch'
-    END AS motivo,
-    ROUND(h1.avg_g,0) AS avg_h1, ROUND(COALESCE(h2.avg_g,0),0) AS avg_h2
-  FROM h1 JOIN rn USING(realmId)
-  LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId)
-  LEFT JOIN recent_active ra ON ra.realmId=h1.realmId
-  LEFT JOIN phones ph ON ph.realmId=h1.realmId
-  WHERE h1.min_g>=50000 AND (ra.realmId IS NULL OR (h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR (h1.min_g>=50000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
+  SELECT rn.realmName,h1.realmId,COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv,COALESCE(s6.tot_g,h1.avg_g*h1.ma) AS total_gtv_6m,ph.phone,
+    CASE WHEN ra.realmId IS NULL AND h1.min_g>=100000 THEN 'Adormecido — era High Touch' WHEN ra.realmId IS NULL AND h1.min_g>=50000 THEN 'Adormecido — era Mid Touch' WHEN h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000 AND h2.min_g>=50000 THEN 'High Touch → Mid Touch' WHEN h1.min_g>=100000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'High Touch → Low Touch' WHEN h1.min_g>=50000 AND h1.min_g<100000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'Mid Touch → Low Touch' END AS motivo,
+    ROUND(h1.avg_g,0) AS avg_h1,ROUND(COALESCE(h2.avg_g,0),0) AS avg_h2
+  FROM h1 JOIN rn USING(realmId) LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId) LEFT JOIN recent_active ra ON ra.realmId=h1.realmId LEFT JOIN phones ph ON ph.realmId=h1.realmId
+  WHERE h1.min_g>=50000 AND(ra.realmId IS NULL OR(h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR(h1.min_g>=50000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
 )
-SELECT realmName,realmId,motivo,avg_monthly_gtv,total_gtv_6m,avg_h1,avg_h2,phone,
-  CASE motivo WHEN 'Adormecido — era High Touch' THEN 1 WHEN 'High Touch → Mid Touch' THEN 2
-    WHEN 'Adormecido — era Mid Touch' THEN 3 WHEN 'High Touch → Low Touch' THEN 4 WHEN 'Mid Touch → Low Touch' THEN 5 END AS prioridade
-FROM atencao WHERE motivo IS NOT NULL ORDER BY prioridade, total_gtv_6m DESC`;
+SELECT realmName,realmId,motivo,avg_monthly_gtv,total_gtv_6m,phone,CASE motivo WHEN 'Adormecido — era High Touch' THEN 1 WHEN 'High Touch → Mid Touch' THEN 2 WHEN 'Adormecido — era Mid Touch' THEN 3 WHEN 'High Touch → Low Touch' THEN 4 WHEN 'Mid Touch → Low Touch' THEN 5 END AS prioridade
+FROM atencao WHERE motivo IS NOT NULL ORDER BY prioridade,total_gtv_6m DESC`;
 
-let kanbanClients = [];
-let draggedId = null;
+let kanbanClients = [], draggedId = null;
+function getKbState() { try { return JSON.parse(localStorage.getItem('p3_kanban_v3')||'{}'); } catch(e) { return {}; } }
+function saveKbState(s) { localStorage.setItem('p3_kanban_v3',JSON.stringify(s)); }
 
-function getKanbanState() {
-  try { return JSON.parse(localStorage.getItem('p3_kanban_v2') || '{}'); } catch(e) { return {}; }
-}
-function saveKanbanState(state) {
-  localStorage.setItem('p3_kanban_v2', JSON.stringify(state));
-}
-
-async function loadKanban(forceRefresh) {
-  if (!kanbanClients.length || forceRefresh) {
-    document.getElementById('kb-body-0').innerHTML = '<div style="font-size:12px;color:#9CA3AF;padding:8px">Carregando…</div>';
-    try {
-      kanbanClients = await bqQuery(KB_QUERY);
-    } catch(e) {
-      showToast('Erro ao carregar Kanban: ' + e.message, 'error'); return;
-    }
+async function loadKanban(force) {
+  if (!kanbanClients.length||force) {
+    document.getElementById('kb-0').innerHTML = '<div class="kanban-empty">Carregando…</div>';
+    try { kanbanClients = await bqQuery(KB_QUERY); } catch(e) { showToast('Erro Kanban: '+e.message,'error'); return; }
   }
-  document.getElementById('t-kb').textContent = kanbanClients.length;
+  document.getElementById('nb-kb').textContent = kanbanClients.length;
   renderKanban();
 }
-
 function renderKanban() {
-  const state = getKanbanState();
-  const cols = [[], [], [], []]; // 0=A Contactar, 1=Em Contato, 2=Agendado, 3=Concluído
-
-  kanbanClients.forEach(c => {
-    const col = parseInt(state[c.realmId] ?? '0');
-    cols[col].push(c);
-  });
-
-  for (let i = 0; i < 4; i++) {
-    const body = document.getElementById(`kb-body-${i}`);
-    document.getElementById(`kb-cnt-${i}`).textContent = cols[i].length;
-    body.innerHTML = '';
-    if (!cols[i].length) {
-      body.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:16px 0">Nenhum cliente aqui</div>';
-      continue;
-    }
-    // sort by priority within column
-    cols[i].sort((a,b) => (parseInt(a.prioridade)||9)-(parseInt(b.prioridade)||9));
-    cols[i].forEach(c => body.appendChild(buildCard(c)));
+  const st = getKbState(); const cols = [[],[],[],[]];
+  kanbanClients.forEach(c => cols[parseInt(st[c.realmId]??'0')].push(c));
+  for (let i=0;i<4;i++) {
+    document.getElementById('kc-'+i).textContent = cols[i].length;
+    const body = document.getElementById('kb-'+i); body.innerHTML='';
+    if (!cols[i].length) { body.innerHTML='<div class="kanban-empty">Vazio</div>'; continue; }
+    cols[i].sort((a,b)=>(parseInt(a.prioridade)||9)-(parseInt(b.prioridade)||9));
+    cols[i].forEach(c=>body.appendChild(buildKCard(c)));
   }
 }
-
-function buildCard(c) {
-  const p = parseInt(c.prioridade) || 5;
-  const pClass = ['','p1','p2','p3','p4','p5'][p];
-  const phone = c.phone || '';
-  const phoneFmt = phone.replace('+55','').replace(/(\d{2})(\d{4,5})(\d{4})/,'($1) $2-$3');
-
-  const card = document.createElement('div');
-  card.className = `kanban-card priority-${p}`;
-  card.draggable = true;
-  card.dataset.id = c.realmId;
-  card.innerHTML = `
+function buildKCard(c) {
+  const p=parseInt(c.prioridade)||5, ph=fmtPhone(c.phone);
+  const card=document.createElement('div');
+  card.className=`kcard p${p}`; card.draggable=true; card.dataset.id=c.realmId;
+  card.innerHTML=`
     <div class="kcard-name">${c.realmName}</div>
-    <div class="kcard-motivo ${pClass}">${c.motivo}</div>
-    <div class="kcard-stats">
-      <span class="kcard-stat">Média: <strong>${fmt(c.avg_monthly_gtv)}/mês</strong></span>
-      <span class="kcard-stat">Total: <strong>${fmt(c.total_gtv_6m)}</strong></span>
-    </div>
-    <div class="kcard-actions">
-      ${phone ? `<a class="kcard-phone" href="tel:${phone}">📞 ${phoneFmt}</a>` : '<span class="kcard-phone" style="color:#9CA3AF">Sem telefone</span>'}
-      <button class="kcard-btn kcard-btn-log" onclick="openDrawer('${c.realmId}');event.stopPropagation()">Registrar</button>
+    <div class="kcard-badge p${p}">${c.motivo}</div>
+    <div class="kcard-gtv">${fmt(c.avg_monthly_gtv)}<span class="kcard-gtv-sub">/mês</span></div>
+    <div class="kcard-footer">
+      ${ph?`<a class="kcard-phone" href="tel:${c.phone}">📞 ${ph}</a>`:'<span class="kcard-phone" style="color:var(--text-2)">Sem telefone</span>'}
+      <button class="kcard-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">Registrar</button>
     </div>`;
-
-  card.addEventListener('dragstart', e => {
-    draggedId = c.realmId;
-    setTimeout(() => card.classList.add('dragging'), 0);
-    e.dataTransfer.effectAllowed = 'move';
-  });
-  card.addEventListener('dragend', () => {
-    card.classList.remove('dragging');
-    draggedId = null;
-  });
+  card.addEventListener('dragstart',e=>{ draggedId=c.realmId; setTimeout(()=>card.classList.add('dragging'),0); e.dataTransfer.effectAllowed='move'; });
+  card.addEventListener('dragend',()=>{ card.classList.remove('dragging'); draggedId=null; });
   return card;
 }
-
-function onDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.querySelector('.kanban-col-body').classList.add('drag-over');
-}
-function onDragLeave(e) {
-  e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over');
-}
-function onDrop(e, colIdx) {
-  e.preventDefault();
-  e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over');
+function onDragOver(e) { e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over'); }
+function onDrop(e,col) {
+  e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over');
   if (!draggedId) return;
-  const state = getKanbanState();
-  const oldCol = state[draggedId] ?? '0';
-  state[draggedId] = colIdx;
-  saveKanbanState(state);
-
-  // Log move to Sheets if moving to "Concluído"
-  if (colIdx === '3' && CONFIG.SHEET_ID) {
-    const client = kanbanClients.find(c => c.realmId === draggedId);
-    if (client) {
-      sheetsAppend('Contacts', [[
-        new Date().toLocaleString('pt-BR'), client.realmId, client.realmName, 'Atenção',
-        state.user?.name || state.accessToken?.slice(0,8), state.user?.email || '',
-        'kanban-concluido', `Movido de coluna ${oldCol} para Concluído`, state.monthRef || ''
-      ]]).catch(()=>{});
-    }
-  }
-  renderKanban();
-  showToast('✅ Card movido!', 'success');
+  const st=getKbState(); st[draggedId]=col; saveKbState(st);
+  if (col==='3'&&CONFIG.SHEET_ID) { const c=kanbanClients.find(x=>x.realmId===draggedId); if(c) sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,'Atenção',state.user?.name||'',state.user?.email||'','kanban-concluido','Movido para Concluído',state.monthRef]]).catch(()=>{}); }
+  renderKanban(); showToast('Card movido!','success');
 }
 
-// ══════════════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════════════
+// ══ FEEDBACK ══════════════════════════════════════════════
+function openFeedback() { document.getElementById('feedback-overlay').style.display='flex'; }
+function closeFeedback() { document.getElementById('feedback-overlay').style.display='none'; }
+async function submitFeedback() {
+  const text=document.getElementById('fb-text').value.trim(); if(!text){showToast('Escreva o feedback.','error');return;}
+  if(CONFIG.SHEET_ID) { try { await sheetsAppend('Feedback',[[new Date().toLocaleString('pt-BR'),state.user.name,state.user.email,document.getElementById('fb-category').value,text]]); } catch(e) {} }
+  document.getElementById('fb-text').value=''; closeFeedback(); showToast('💬 Feedback enviado!','success');
+}
+
+// ══ TOAST ═════════════════════════════════════════════════
 let toastTimer;
-function showToast(msg, type = '') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'show ' + (type||'');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.className = '', 3500);
+function showToast(msg,type='') {
+  const el=document.getElementById('toast'); el.textContent=msg; el.className='show '+(type||'');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.className='',3500);
 }
 </script>
 </body>
