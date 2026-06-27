@@ -392,8 +392,8 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .kanban-sub-header { display: flex; align-items: center; gap: 12px; padding: 20px 28px 14px; }
 .kanban-sub-title { font-size: 14px; font-weight: 800; color: var(--text); }
 .kanban-sub-info { font-size: 12px; color: var(--text-2); font-weight: 500; flex: 1; }
-.kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 28px 32px; }
-.kanban-col { background: var(--white); border-radius: 14px; padding: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 0 28px 32px; }
+.kanban-col { background: var(--white); border-radius: 14px; padding: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .kanban-col-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-2); }
 .kc-count { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
@@ -608,45 +608,13 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
       <div class="view" id="view-tasks">
         <div class="view-header"><span class="view-badge kb">✅ Tasks de Contato</span></div>
         <div class="tasks-top">
-          <div class="tasks-info">Adormecidos primeiro · Depois clientes em queda · Ordenados por GTV</div>
+          <div class="tasks-info">Adormecidos primeiro · Em queda depois · Ordenados por GTV dentro de cada coluna</div>
           <button class="tasks-refresh" onclick="loadTasks(true)">↺ Atualizar</button>
-        </div>
-        <div class="tasks-section" id="tasks-dormant-section">
-          <div class="tasks-section-hdr">
-            <span class="tasks-hdr-dot" style="background:#DC2626"></span>
-            <span class="tasks-hdr-title">🔴 Adormecidos</span>
-            <span class="tasks-hdr-count" id="tasks-dormant-count">0</span>
-          </div>
-          <div id="tasks-dormant-list"><div class="tasks-empty">Carregando…</div></div>
-        </div>
-        <div class="tasks-section" id="tasks-decline-section">
-          <div class="tasks-section-hdr">
-            <span class="tasks-hdr-dot" style="background:#D97706"></span>
-            <span class="tasks-hdr-title">🟡 Em Queda</span>
-            <span class="tasks-hdr-count" id="tasks-decline-count">0</span>
-          </div>
-          <div id="tasks-decline-list"></div>
-        </div>
-        <div class="tasks-done-section" id="tasks-done-section" style="display:none">
-          <div class="tasks-done-hdr" onclick="toggleDoneSection()">
-            <span>✅ Concluídos</span><span id="tasks-done-count" style="background:var(--p3-bg);border:1px solid var(--border);padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700">0</span>
-            <span style="margin-left:auto;font-size:12px" id="tasks-done-chevron">▼</span>
-          </div>
-          <div id="tasks-done-list" style="display:none"></div>
-        </div>
-
-        <!-- KANBAN abaixo das Tasks -->
-        <hr class="kanban-divider">
-        <div class="kanban-sub-header">
-          <div>
-            <div class="kanban-sub-title">📋 Kanban</div>
-          </div>
-          <div class="kanban-sub-info">Arraste os cards entre as colunas para acompanhar o andamento</div>
         </div>
         <div class="kanban-board">
           <div class="kanban-col col-0" ondragover="onDragOver(event)" ondrop="onDrop(event,'0')" ondragleave="onDragLeave(event)">
             <div class="kanban-col-header"><span class="kanban-col-title">📬 A Contactar</span><span class="kc-count" id="kc-0">0</span></div>
-            <div class="kanban-col-body" id="kb-0"></div>
+            <div class="kanban-col-body" id="kb-0"><div class="kanban-empty">Carregando…</div></div>
           </div>
           <div class="kanban-col col-1" ondragover="onDragOver(event)" ondrop="onDrop(event,'1')" ondragleave="onDragLeave(event)">
             <div class="kanban-col-header"><span class="kanban-col-title">📞 Em Contato</span><span class="kc-count" id="kc-1">0</span></div>
@@ -1165,66 +1133,7 @@ async function loadTasks(force) {
 }
 
 function renderTasks() {
-  const st = getTaskStatus();
-  const names = getContactNames();
-  // separate dormant vs declining, then done
-  const dormant = tasksClients.filter(c=>parseInt(c.prioridade)<=2 && st[c.realmId]!=='3');
-  const decline = tasksClients.filter(c=>parseInt(c.prioridade)>2  && st[c.realmId]!=='3');
-  const done    = tasksClients.filter(c=>st[c.realmId]==='3');
-  // sort each group by total_gtv_6m desc (already ordered from BQ within groups, but re-sort for safety)
-  const byGtv = (a,b) => (parseFloat(b.total_gtv_6m)||0)-(parseFloat(a.total_gtv_6m)||0);
-  dormant.sort(byGtv); decline.sort(byGtv);
-
-  document.getElementById('tasks-dormant-count').textContent = dormant.length;
-  document.getElementById('tasks-decline-count').textContent = decline.length;
-  document.getElementById('tasks-done-count').textContent = done.length;
-
-  renderTaskList('tasks-dormant-list', dormant, st, names);
-  renderTaskList('tasks-decline-list', decline, st, names);
-  renderTaskList('tasks-done-list', done, st, names);
-
-  const doneSection = document.getElementById('tasks-done-section');
-  doneSection.style.display = done.length ? 'block' : 'none';
   renderKanban();
-}
-
-function renderTaskList(containerId, list, st, names) {
-  const el = document.getElementById(containerId);
-  if (!list.length) { el.innerHTML = '<div class="tasks-empty">Nenhum cliente aqui.</div>'; return; }
-  el.innerHTML = '';
-  list.forEach((c, i) => {
-    const p = parseInt(c.prioridade)||5;
-    const status = parseInt(st[c.realmId]||'0');
-    const ph = fmtPhone(c.phone);
-    const cname = names[c.realmId]||'';
-    const moClass = ['tm-p1','tm-p2','tm-p3','tm-p4','tm-p5'][p-1]||'tm-p5';
-    const row = document.createElement('div');
-    row.className = `task-item tp${p}${status===3?' ts-done':''}`;
-    row.innerHTML = `
-      <div class="task-rank">#${i+1}</div>
-      <div class="task-info">
-        <div class="task-company">${c.realmName}</div>
-        <div class="task-contact">👤 ${cname||'<span style="color:#C4C4D8">Sem contato</span>'}</div>
-      </div>
-      <div class="task-gtv-col">
-        <div class="task-gtv-val">${fmt(c.avg_monthly_gtv)}</div>
-        <div class="task-gtv-sub">/mês</div>
-      </div>
-      <span class="task-motivo ${moClass}">${c.motivo}</span>
-      ${ph ? `<a class="client-phone" href="tel:${c.phone}" style="white-space:nowrap;font-size:11px" onclick="event.stopPropagation()">📞 ${ph}</a>` : '<span style="font-size:11px;color:var(--text-2)">—</span>'}
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="task-status-btn ${TASK_STATUS_CLS[status]}" onclick="cycleStatus('${c.realmId}');event.stopPropagation()" title="Clique para avançar o status">${TASK_STATUS[status]}</button>
-        <button class="task-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">Registrar</button>
-      </div>`;
-    el.appendChild(row);
-  });
-}
-
-let doneExpanded = false;
-function toggleDoneSection() {
-  doneExpanded = !doneExpanded;
-  document.getElementById('tasks-done-list').style.display = doneExpanded ? 'block' : 'none';
-  document.getElementById('tasks-done-chevron').textContent = doneExpanded ? '▲' : '▼';
 }
 
 // ══ KANBAN (drag-and-drop, abaixo das tasks) ═══════════════
