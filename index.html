@@ -171,7 +171,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 #content { flex: 1; overflow-y: auto; }
 
 /* ─── METRIC CARDS ───────────────────────────────────────── */
-.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 24px 28px 0; }
+.metrics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; padding: 24px 28px 0; }
 .metric {
   background: var(--white); border-radius: 14px; padding: 18px 20px;
   border: 2px solid var(--border); box-shadow: var(--shadow-sm);
@@ -531,6 +531,11 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <span class="nav-label">Tasks</span>
         <span class="nav-badge" id="nb-kb">—</span>
       </div>
+      <div class="nav-item" onclick="switchView('followup')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Follow up</span>
+        <span class="nav-badge" id="nb-fu">—</span>
+      </div>
     </div>
 
     <div class="sidebar-spacer"></div>
@@ -578,6 +583,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <div class="metric m-lt" id="mc-lt" onclick="switchView('lt')"><div class="metric-accent"></div><div class="metric-label">Low Touch</div><div class="metric-value" id="m-lt-n">—</div><div class="metric-sub" id="m-lt-g">—</div><span class="metric-arrow">→</span></div>
         <div class="metric m-at" id="mc-at" onclick="switchView('at')"><div class="metric-accent"></div><div class="metric-label">⚠ Atenção</div><div class="metric-value" id="m-at-n">—</div><div class="metric-sub" id="m-at-g">—</div><span class="metric-arrow">→</span></div>
         <div class="metric m-kb" id="mc-tasks" onclick="switchView('tasks')"><div class="metric-accent"></div><div class="metric-label">✅ Tasks</div><div class="metric-value" id="m-kb-n">—</div><div class="metric-sub">clientes prioritários</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-kb" id="mc-followup" onclick="switchView('followup')" style="--p3:#7C3AED;--p3-dark:#5B21B6;--p3-pale:#EDE9FE"><div class="metric-accent" style="background:#7C3AED"></div><div class="metric-label">📊 Follow up</div><div class="metric-value" id="m-fu-n" style="color:#7C3AED">—</div><div class="metric-sub">maior delta primeiro</div><span class="metric-arrow">→</span></div>
       </div>
 
       <!-- HT View -->
@@ -604,29 +610,62 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <div class="table-wrap"><table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
       </div>
 
-      <!-- TASKS View -->
+      <!-- TASKS View (lista de prioridade) -->
       <div class="view" id="view-tasks">
         <div class="view-header"><span class="view-badge kb">✅ Tasks de Contato</span></div>
         <div class="tasks-top">
-          <div class="tasks-info">Adormecidos primeiro · Em queda depois · Ordenados por GTV dentro de cada coluna</div>
+          <div class="tasks-info">Adormecidos primeiro · Em queda depois · Ordenados por GTV</div>
           <button class="tasks-refresh" onclick="loadTasks(true)">↺ Atualizar</button>
         </div>
+        <div class="tasks-section">
+          <div class="tasks-section-hdr">
+            <span class="tasks-hdr-dot" style="background:#DC2626"></span>
+            <span class="tasks-hdr-title">🔴 Adormecidos</span>
+            <span class="tasks-hdr-count" id="tasks-dormant-count">0</span>
+          </div>
+          <div id="tasks-dormant-list"><div class="tasks-empty">Carregando…</div></div>
+        </div>
+        <div class="tasks-section">
+          <div class="tasks-section-hdr">
+            <span class="tasks-hdr-dot" style="background:#D97706"></span>
+            <span class="tasks-hdr-title">🟡 Em Queda</span>
+            <span class="tasks-hdr-count" id="tasks-decline-count">0</span>
+          </div>
+          <div id="tasks-decline-list"></div>
+        </div>
+        <div class="tasks-done-section" id="tasks-done-section" style="display:none">
+          <div class="tasks-done-hdr" onclick="toggleDoneSection()">
+            <span>✅ Concluídos</span>
+            <span id="tasks-done-count" style="background:var(--p3-bg);border:1px solid var(--border);padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700">0</span>
+            <span style="margin-left:auto;font-size:12px" id="tasks-done-chevron">▼</span>
+          </div>
+          <div id="tasks-done-list" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- FOLLOW UP View (kanban com delta) -->
+      <div class="view" id="view-followup">
+        <div class="view-header"><span class="view-badge" style="background:#EDE9FE;color:#5B21B6">📊 Follow up</span></div>
+        <div class="tasks-top">
+          <div class="tasks-info">Ordenado pelo maior delta (média 6m vs último mês) dentro de cada coluna</div>
+          <button class="tasks-refresh" onclick="loadFollowup(true)">↺ Atualizar</button>
+        </div>
         <div class="kanban-board">
-          <div class="kanban-col col-0" ondragover="onDragOver(event)" ondrop="onDrop(event,'0')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">📬 A Contactar</span><span class="kc-count" id="kc-0">0</span></div>
-            <div class="kanban-col-body" id="kb-0"><div class="kanban-empty">Carregando…</div></div>
+          <div class="kanban-col col-0" ondragover="onDragOver(event,'fu')" ondrop="onDrop(event,'0','fu')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📬 A Contactar</span><span class="kc-count" id="fu-c-0">0</span></div>
+            <div class="kanban-col-body" id="fu-0"><div class="kanban-empty">Carregando…</div></div>
           </div>
-          <div class="kanban-col col-1" ondragover="onDragOver(event)" ondrop="onDrop(event,'1')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">📞 Em Contato</span><span class="kc-count" id="kc-1">0</span></div>
-            <div class="kanban-col-body" id="kb-1"></div>
+          <div class="kanban-col col-1" ondragover="onDragOver(event,'fu')" ondrop="onDrop(event,'1','fu')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📞 Em Contato</span><span class="kc-count" id="fu-c-1">0</span></div>
+            <div class="kanban-col-body" id="fu-1"></div>
           </div>
-          <div class="kanban-col col-2" ondragover="onDragOver(event)" ondrop="onDrop(event,'2')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">📅 Agendado</span><span class="kc-count" id="kc-2">0</span></div>
-            <div class="kanban-col-body" id="kb-2"></div>
+          <div class="kanban-col col-2" ondragover="onDragOver(event,'fu')" ondrop="onDrop(event,'2','fu')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📅 Agendado</span><span class="kc-count" id="fu-c-2">0</span></div>
+            <div class="kanban-col-body" id="fu-2"></div>
           </div>
-          <div class="kanban-col col-3" ondragover="onDragOver(event)" ondrop="onDrop(event,'3')" ondragleave="onDragLeave(event)">
-            <div class="kanban-col-header"><span class="kanban-col-title">✅ Concluído</span><span class="kc-count" id="kc-3">0</span></div>
-            <div class="kanban-col-body" id="kb-3"></div>
+          <div class="kanban-col col-3" ondragover="onDragOver(event,'fu')" ondrop="onDrop(event,'3','fu')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">✅ Concluído</span><span class="kc-count" id="fu-c-3">0</span></div>
+            <div class="kanban-col-body" id="fu-3"></div>
           </div>
         </div>
       </div>
@@ -723,11 +762,12 @@ const state = {
 };
 
 const VIEW_META = {
-  ht: { title: 'High Touch', sub: 'GTV ≥ R$100k em todos os 6 meses · Excluindo bloqueados Swap' },
-  mt: { title: 'Mid Touch', sub: 'GTV entre R$50k e R$100k em todos os meses' },
-  lt: { title: 'Low Touch', sub: 'Perenes nos últimos 6 meses · Média abaixo de R$50k' },
-  at: { title: 'Atenção', sub: 'Degradação de cluster ou adormecimento nos últimos 30 dias' },
-  tasks: { title: 'Tasks', sub: 'Adormecidos primeiro · Em queda · Ordenados por GTV' },
+  ht:       { title: 'High Touch', sub: 'GTV ≥ R$100k em todos os 6 meses · Excluindo bloqueados Swap' },
+  mt:       { title: 'Mid Touch',  sub: 'GTV entre R$50k e R$100k em todos os meses' },
+  lt:       { title: 'Low Touch',  sub: 'Perenes nos últimos 6 meses · Média abaixo de R$50k' },
+  at:       { title: 'Atenção',    sub: 'Degradação de cluster ou adormecimento nos últimos 30 dias' },
+  tasks:    { title: 'Tasks',      sub: 'Adormecidos primeiro · Em queda · Ordenados por GTV' },
+  followup: { title: 'Follow up',  sub: 'Média 6m vs último mês · Maior delta = maior prioridade' },
 };
 
 // ══ AUTH ══════════════════════════════════════════════════
@@ -994,7 +1034,7 @@ function switchView(view) {
   const navMap = {ht:0,mt:1,lt:2,at:3,kanban:4};
   document.querySelectorAll('.nav-item')[navMap[view]]?.classList.add('active');
   // metric cards
-  const cardMap = {ht:'mc-ht',mt:'mc-mt',lt:'mc-lt',at:'mc-at',tasks:'mc-tasks'};
+  const cardMap = {ht:'mc-ht',mt:'mc-mt',lt:'mc-lt',at:'mc-at',tasks:'mc-tasks',followup:'mc-followup'};
   document.querySelectorAll('.metric').forEach(el => el.classList.remove('active'));
   const activeCard = document.getElementById(cardMap[view]);
   if (activeCard) activeCard.classList.add('active');
@@ -1004,7 +1044,8 @@ function switchView(view) {
   document.getElementById('topbar-title').textContent = VIEW_META[view].title;
   document.getElementById('topbar-sub').textContent = VIEW_META[view].sub;
   document.getElementById('global-search').value = '';
-  if (view==='tasks' && !tasksClients.length) loadTasks(false);
+  if (view==='tasks'    && !tasksClients.length)    loadTasks(false);
+  if (view==='followup' && !followupClients.length) loadFollowup(false);
 }
 
 // ══ DRAWER ════════════════════════════════════════════════
@@ -1132,58 +1173,193 @@ async function loadTasks(force) {
   renderTasks();
 }
 
+// ── Tasks: lista de prioridade ─────────────────────────────
 function renderTasks() {
-  renderKanban();
+  const names = getContactNames();
+  const st = getTaskStatus();
+  const dormant = tasksClients.filter(c=>parseInt(c.prioridade)<=2 && st[c.realmId]!=='3');
+  const decline = tasksClients.filter(c=>parseInt(c.prioridade)>2  && st[c.realmId]!=='3');
+  const done    = tasksClients.filter(c=>st[c.realmId]==='3');
+  const byGtv = (a,b)=>(parseFloat(b.total_gtv_6m)||0)-(parseFloat(a.total_gtv_6m)||0);
+  dormant.sort(byGtv); decline.sort(byGtv);
+  document.getElementById('tasks-dormant-count').textContent = dormant.length;
+  document.getElementById('tasks-decline-count').textContent = decline.length;
+  document.getElementById('tasks-done-count').textContent = done.length;
+  renderTaskList('tasks-dormant-list', dormant, st, names);
+  renderTaskList('tasks-decline-list', decline, st, names);
+  renderTaskList('tasks-done-list', done, st, names);
+  document.getElementById('tasks-done-section').style.display = done.length ? 'block' : 'none';
+}
+function renderTaskList(containerId, list, st, names) {
+  const el = document.getElementById(containerId);
+  if (!list.length) { el.innerHTML = '<div class="tasks-empty">Nenhum cliente aqui.</div>'; return; }
+  el.innerHTML = '';
+  list.forEach((c, i) => {
+    const p = parseInt(c.prioridade)||5, status = parseInt(st[c.realmId]||'0');
+    const ph = fmtPhone(c.phone), cname = names[c.realmId]||'';
+    const moClass = ['tm-p1','tm-p2','tm-p3','tm-p4','tm-p5'][p-1]||'tm-p5';
+    const row = document.createElement('div');
+    row.className = `task-item tp${p}${status===3?' ts-done':''}`;
+    row.innerHTML = `
+      <div class="task-rank">#${i+1}</div>
+      <div class="task-info">
+        <div class="task-company">${c.realmName}</div>
+        <div class="task-contact">👤 ${cname||'<span style="color:#C4C4D8">Sem contato</span>'}</div>
+      </div>
+      <div class="task-gtv-col"><div class="task-gtv-val">${fmt(c.avg_monthly_gtv)}</div><div class="task-gtv-sub">/mês</div></div>
+      <span class="task-motivo ${moClass}">${c.motivo}</span>
+      ${ph?`<a class="client-phone" href="tel:${c.phone}" style="white-space:nowrap;font-size:11px" onclick="event.stopPropagation()">📞 ${ph}</a>`:'<span style="font-size:11px;color:var(--text-2)">—</span>'}
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="task-status-btn ${TASK_STATUS_CLS[status]}" onclick="cycleStatus('${c.realmId}');event.stopPropagation()">${TASK_STATUS[status]}</button>
+        <button class="task-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">Registrar</button>
+      </div>`;
+    el.appendChild(row);
+  });
+}
+let doneExpanded = false;
+function toggleDoneSection() {
+  doneExpanded = !doneExpanded;
+  document.getElementById('tasks-done-list').style.display = doneExpanded ? 'block' : 'none';
+  document.getElementById('tasks-done-chevron').textContent = doneExpanded ? '▲' : '▼';
 }
 
-// ══ KANBAN (drag-and-drop, abaixo das tasks) ═══════════════
-let draggedId = null;
-function getKbState() { try { return JSON.parse(localStorage.getItem('p3_kanban_v3')||'{}'); } catch(e) { return {}; } }
-function saveKbState(s) { localStorage.setItem('p3_kanban_v3',JSON.stringify(s)); }
+// ── Follow up: kanban com delta ────────────────────────────
+const FOLLOWUP_QUERY = `
+WITH params AS (
+  SELECT
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH),MONTH) AS window_start,
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 3 MONTH),MONTH) AS mid_point,
+    DATE_TRUNC(CURRENT_DATE(),MONTH) AS window_end,
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 1 MONTH),MONTH) AS lm_start,
+    DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) AS dormant_cutoff
+),
+excluded AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status IN('REPROVED','CLOSED')),
+phones AS (SELECT realmId,ANY_VALUE(phoneNumber) AS phone FROM \`p3-data-lake.consolidado.accounts\` WHERE phoneNumber IS NOT NULL AND status NOT IN('REPROVED','CLOSED') GROUP BY 1),
+monthly_6m AS (
+  SELECT t.realmId,t.realmName,FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,
+    ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv
+  FROM \`p3-data-lake.consolidado.transactions\` t,params p
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
+    AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end
+    AND t.realmId NOT IN(SELECT realmId FROM excluded)
+  GROUP BY 1,2,3
+),
+last_month AS (
+  SELECT t.realmId, ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS last_month_gtv
+  FROM \`p3-data-lake.consolidado.transactions\` t,params p
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
+    AND DATE(t.effectiveAt)>=p.lm_start AND DATE(t.effectiveAt)<p.window_end
+    AND t.realmId NOT IN(SELECT realmId FROM excluded)
+  GROUP BY 1
+),
+recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t,params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN(SELECT realmId FROM excluded)),
+rn AS (SELECT realmId,ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
+h1 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+h2 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+s6 AS (SELECT realmId,ROUND(AVG(gtv),0) AS avg_g,ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
+atencao AS (
+  SELECT rn.realmName,h1.realmId,
+    COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv,
+    COALESCE(lm.last_month_gtv,0) AS last_month_gtv,
+    ROUND(COALESCE(lm.last_month_gtv,0)-COALESCE(s6.avg_g,h1.avg_g),0) AS delta,
+    ph.phone,
+    CASE
+      WHEN ra.realmId IS NULL AND h1.min_g>=100000 THEN 'Adormecido — era High Touch'
+      WHEN ra.realmId IS NULL AND h1.min_g>=50000  THEN 'Adormecido — era Mid Touch'
+      WHEN h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000 AND h2.min_g>=50000 THEN 'High Touch → Mid Touch'
+      WHEN h1.min_g>=100000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'High Touch → Low Touch'
+      WHEN h1.min_g>=50000  AND h1.min_g<100000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'Mid Touch → Low Touch'
+    END AS motivo
+  FROM h1 JOIN rn USING(realmId)
+  LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId)
+  LEFT JOIN recent_active ra ON ra.realmId=h1.realmId
+  LEFT JOIN phones ph ON ph.realmId=h1.realmId
+  LEFT JOIN last_month lm ON lm.realmId=h1.realmId
+  WHERE h1.min_g>=50000 AND(
+    ra.realmId IS NULL OR
+    (h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR
+    (h1.min_g>=50000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL)
+  )
+)
+SELECT * FROM atencao WHERE motivo IS NOT NULL ORDER BY delta ASC`;
 
-function renderKanban() {
-  const st = getKbState();
-  const names = getContactNames();
+let followupClients = [], draggedId = null, draggedCtx = null;
+
+function getFuState() { try { return JSON.parse(localStorage.getItem('p3_followup_v1')||'{}'); } catch(e) { return {}; } }
+function saveFuState(s) { localStorage.setItem('p3_followup_v1',JSON.stringify(s)); }
+
+async function loadFollowup(force) {
+  if (!followupClients.length||force) {
+    document.getElementById('fu-0').innerHTML = '<div class="kanban-empty">Carregando…</div>';
+    try { followupClients = await bqQuery(FOLLOWUP_QUERY); } catch(e) { showToast('Erro Follow up: '+e.message,'error'); return; }
+  }
+  document.getElementById('nb-fu').textContent = followupClients.length;
+  document.getElementById('m-fu-n').textContent = followupClients.length;
+  renderFollowup();
+}
+
+function renderFollowup() {
+  const st = getFuState(), names = getContactNames();
   const cols = [[],[],[],[]];
-  tasksClients.forEach(c => cols[parseInt(st[c.realmId]??'0')].push(c));
+  followupClients.forEach(c => cols[parseInt(st[c.realmId]??'0')].push(c));
   for (let i=0;i<4;i++) {
-    document.getElementById('kc-'+i).textContent = cols[i].length;
-    const body = document.getElementById('kb-'+i); body.innerHTML='';
+    document.getElementById('fu-c-'+i).textContent = cols[i].length;
+    const body = document.getElementById('fu-'+i); body.innerHTML='';
     if (!cols[i].length) { body.innerHTML='<div class="kanban-empty">Vazio</div>'; continue; }
-    // sort by prioridade then gtv
-    cols[i].sort((a,b)=>(parseInt(a.prioridade)||9)-(parseInt(b.prioridade)||9)||(parseFloat(b.total_gtv_6m)||0)-(parseFloat(a.total_gtv_6m)||0));
-    cols[i].forEach(c=>body.appendChild(buildKCard(c, names)));
+    // sort by delta ASC (maior queda primeiro)
+    cols[i].sort((a,b)=>(parseFloat(a.delta)||0)-(parseFloat(b.delta)||0));
+    cols[i].forEach(c=>body.appendChild(buildFuCard(c,names)));
   }
 }
-function buildKCard(c, names) {
-  const p=parseInt(c.prioridade)||5, ph=fmtPhone(c.phone);
-  const cname=names[c.realmId]||'';
-  const card=document.createElement('div');
-  card.className=`kcard p${p}`; card.draggable=true; card.dataset.id=c.realmId;
-  card.innerHTML=`
+
+function buildFuCard(c, names) {
+  const ph = fmtPhone(c.phone), cname = names[c.realmId]||'';
+  const delta = parseFloat(c.delta)||0;
+  const avg = parseFloat(c.avg_monthly_gtv)||0;
+  const pct = avg ? Math.round((delta/avg)*100) : 0;
+  const deltaColor = delta < 0 ? '#B91C1C' : delta > 0 ? '#15803D' : '#6B7280';
+  const deltaIcon  = delta < 0 ? '▼' : delta > 0 ? '▲' : '→';
+  const p = c.motivo?.includes('Adormecido')&&c.motivo?.includes('High') ? 1
+           : c.motivo?.includes('Adormecido') ? 2
+           : c.motivo?.includes('→ Mid') ? 3
+           : c.motivo?.includes('High Touch → Low') ? 4 : 5;
+  const card = document.createElement('div');
+  card.className = `kcard p${p}`; card.draggable = true; card.dataset.id = c.realmId; card.dataset.ctx = 'fu';
+  card.innerHTML = `
     <div class="kcard-name">${c.realmName}</div>
     ${cname?`<div class="kcard-contact">👤 ${cname}</div>`:''}
     <div class="kcard-badge p${p}">${c.motivo}</div>
-    <div class="kcard-gtv">${fmt(c.avg_monthly_gtv)}<span style="font-size:9px;color:var(--text-2);font-weight:500">/mês</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
+      <div style="background:var(--p3-bg);border-radius:7px;padding:6px 8px">
+        <div style="font-size:9px;color:var(--text-2);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Média 6m</div>
+        <div style="font-size:13px;font-weight:800;color:var(--p3-dark)">${fmt(avg)}</div>
+      </div>
+      <div style="background:var(--p3-bg);border-radius:7px;padding:6px 8px">
+        <div style="font-size:9px;color:var(--text-2);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Último mês</div>
+        <div style="font-size:13px;font-weight:800;color:var(--p3-dark)">${fmt(c.last_month_gtv)}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:800;color:${deltaColor};margin-bottom:8px">${deltaIcon} ${fmt(Math.abs(delta))} (${pct > 0?'+':''}${pct}%)</div>
     <div class="kcard-footer">
       ${ph?`<a class="kcard-phone" href="tel:${c.phone}">📞 ${ph}</a>`:'<span class="kcard-phone" style="color:var(--text-2)">—</span>'}
       <button class="kcard-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">+</button>
     </div>`;
-  card.addEventListener('dragstart',e=>{ draggedId=c.realmId; setTimeout(()=>card.classList.add('dragging'),0); e.dataTransfer.effectAllowed='move'; });
-  card.addEventListener('dragend',()=>{ card.classList.remove('dragging'); draggedId=null; });
+  card.addEventListener('dragstart',e=>{ draggedId=c.realmId; draggedCtx='fu'; setTimeout(()=>card.classList.add('dragging'),0); e.dataTransfer.effectAllowed='move'; });
+  card.addEventListener('dragend',()=>{ card.classList.remove('dragging'); draggedId=null; draggedCtx=null; });
   return card;
 }
-function onDragOver(e) { e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.add('drag-over'); }
+
+function onDragOver(e,ctx) { e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.add('drag-over'); }
 function onDragLeave(e) { e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over'); }
-function onDrop(e,col) {
+function onDrop(e,col,ctx) {
   e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over');
   if (!draggedId) return;
-  const st=getKbState(); st[draggedId]=col; saveKbState(st);
-  if (col==='3'&&CONFIG.SHEET_ID) {
-    const c=tasksClients.find(x=>x.realmId===draggedId);
-    if(c) sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,'Atenção',state.user?.name||'',state.user?.email||'','kanban-concluido','Movido para Concluído',state.monthRef]]).catch(()=>{});
+  if (ctx==='fu') {
+    const st=getFuState(); st[draggedId]=col; saveFuState(st);
+    if (col==='3'&&CONFIG.SHEET_ID) { const c=followupClients.find(x=>x.realmId===draggedId); if(c) sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,'Follow up',state.user?.name||'',state.user?.email||'','followup-concluido','Concluído no Follow up',state.monthRef]]).catch(()=>{}); }
+    renderFollowup();
   }
-  renderKanban(); showToast('Card movido!','success');
+  showToast('Card movido!','success');
 }
 
 // ══ FEEDBACK ══════════════════════════════════════════════
