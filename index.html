@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3 Cluster CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+:root {
+  --p3: #43418E;
+  --p3-dark: #2D2B6B;
+  --p3-darker: #1E1C4A;
+  --p3-light: #6C6BA8;
+  --p3-pale: #E8E7F5;
+  --p3-bg: #F4F3FB;
+  --white: #FFFFFF;
+  --text: #1A1A2E;
+  --text-2: #6B6B8A;
+  --border: #E2E1F0;
+  --green: #16A34A;
+  --orange: #C2410C;
+  --red: #B91C1C;
+  --shadow-sm: 0 1px 3px rgba(45,43,107,0.08);
+  --shadow: 0 4px 16px rgba(45,43,107,0.10);
+  --shadow-lg: 0 12px 40px rgba(45,43,107,0.16);
+  --sidebar-w: 232px;
+  --font: 'Montserrat', Verdana, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: var(--font); background: var(--p3-bg); color: var(--text); font-size: 13px; }
+
+/* ─── LOGIN ──────────────────────────────────────────────── */
+#login-screen {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--p3-darker) 0%, var(--p3-dark) 50%, var(--p3) 100%);
+  z-index: 999;
+}
+.login-card {
+  background: var(--white); border-radius: 24px; padding: 52px 48px;
+  width: 420px; text-align: center; box-shadow: var(--shadow-lg);
+}
+.login-logo-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 28px; }
+.login-logo-icon {
+  width: 52px; height: 52px; background: var(--p3); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; color: white; letter-spacing: -1px;
+}
+.login-logo-text { text-align: left; }
+.login-logo-name { font-size: 20px; font-weight: 800; color: var(--p3-dark); letter-spacing: -0.5px; }
+.login-logo-sub { font-size: 11px; font-weight: 600; color: var(--p3-light); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 1px; }
+.login-divider { width: 48px; height: 2px; background: var(--p3-pale); border-radius: 2px; margin: 0 auto 24px; }
+.login-headline { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.login-sub { font-size: 12px; color: var(--text-2); margin-bottom: 28px; line-height: 1.5; }
+.login-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 13px 20px; border: 2px solid var(--border); border-radius: 12px;
+  font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text);
+  background: white; font-family: var(--font); transition: all 0.15s;
+}
+.login-btn:hover { border-color: var(--p3-light); background: var(--p3-bg); box-shadow: var(--shadow-sm); }
+.login-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.login-error { margin-top: 14px; padding: 10px 14px; background: #FEF2F2; border-radius: 8px; font-size: 12px; color: var(--red); display: none; border: 1px solid #FECACA; }
+.login-note { margin-top: 18px; font-size: 11px; color: #A0A0BC; }
+
+/* ─── APP SHELL ──────────────────────────────────────────── */
+#app { display: none; height: 100vh; display: none; }
+#app.visible { display: flex; }
+
+/* ─── SIDEBAR ────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w); height: 100vh;
+  background: var(--p3-dark); display: flex; flex-direction: column;
+  position: sticky; top: 0; overflow: hidden;
+}
+.sidebar-brand {
+  padding: 22px 20px 18px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-brand-icon {
+  width: 36px; height: 36px; background: rgba(255,255,255,0.12); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; color: white; flex-shrink: 0;
+}
+.sidebar-brand-text { line-height: 1.2; }
+.sidebar-brand-name { font-size: 14px; font-weight: 800; color: white; letter-spacing: -0.3px; }
+.sidebar-brand-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+
+.sidebar-section { padding: 18px 12px 6px; }
+.sidebar-section-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1.5px; padding: 0 8px; margin-bottom: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  border-radius: 10px; cursor: pointer; transition: all 0.15s;
+  color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500;
+  margin-bottom: 1px;
+}
+.nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(255,255,255,0.12); color: white; font-weight: 600; }
+.nav-icon { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.nav-label { flex: 1; }
+.nav-badge {
+  font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 20px;
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);
+}
+.nav-item.active .nav-badge { background: rgba(255,255,255,0.2); color: white; }
+.nav-item.danger { color: #FCA5A5; }
+.nav-item.danger:hover { background: rgba(252,165,165,0.1); color: #FCA5A5; }
+.nav-item.danger.active { background: rgba(252,165,165,0.15); color: #FECACA; }
+.nav-item.danger .nav-badge { background: rgba(252,165,165,0.2); color: #FCA5A5; }
+
+.sidebar-spacer { flex: 1; }
+
+.sidebar-period {
+  margin: 0 12px 8px; padding: 8px 12px; background: rgba(255,255,255,0.06);
+  border-radius: 10px; font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500;
+  text-align: center; border: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar-user {
+  padding: 12px; border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-avatar {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--p3); border: 2px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden;
+}
+.sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.sidebar-user-info { flex: 1; min-width: 0; }
+.sidebar-user-name { font-size: 12px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-email { font-size: 10px; color: rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-signout { background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; padding: 4px; border-radius: 6px; font-size: 16px; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
+.sidebar-signout:hover { color: rgba(255,255,255,0.7); }
+
+/* ─── MAIN ───────────────────────────────────────────────── */
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+.topbar {
+  background: var(--white); border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 5;
+}
+.topbar-title { font-size: 16px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+.topbar-subtitle { font-size: 11px; color: var(--text-2); font-weight: 500; }
+.topbar-search {
+  margin-left: auto; padding: 8px 14px 8px 36px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 12px; font-family: var(--font); background: var(--p3-bg);
+  color: var(--text); width: 220px; position: relative; transition: all 0.15s;
+}
+.topbar-search:focus { outline: none; border-color: var(--p3-light); width: 260px; background: white; }
+.search-wrap { position: relative; flex-shrink: 0; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+.btn-feedback {
+  background: var(--p3); color: white; border: none; border-radius: 10px;
+  padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-feedback:hover { background: var(--p3-dark); }
+.setup-banner {
+  background: #FFF7ED; border-bottom: 1px solid #FED7AA; padding: 10px 28px;
+  font-size: 12px; color: #9A3412; display: none; align-items: center; gap: 8px; font-weight: 500;
+}
+.setup-banner button {
+  margin-left: auto; background: #9A3412; color: white; border: none; border-radius: 7px;
+  padding: 5px 14px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font);
+}
+
+/* ─── CONTENT AREA ───────────────────────────────────────── */
+#content { flex: 1; overflow-y: auto; }
+
+/* ─── METRIC CARDS ───────────────────────────────────────── */
+.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 24px 28px 0; }
+.metric {
+  background: var(--white); border-radius: 14px; padding: 18px 20px;
+  border: 2px solid var(--border); box-shadow: var(--shadow-sm);
+  position: relative; overflow: hidden; transition: all 0.18s;
+  cursor: pointer; user-select: none;
+}
+.metric:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.metric-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.metric-label { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; }
+.metric-value { font-size: 26px; font-weight: 800; color: var(--text); margin: 8px 0 4px; letter-spacing: -1px; }
+.metric-sub { font-size: 11px; color: var(--text-2); font-weight: 500; }
+.metric-arrow { position: absolute; bottom: 12px; right: 14px; font-size: 12px; color: var(--border); transition: all 0.18s; }
+.metric:hover .metric-arrow { color: var(--text-2); transform: translateX(2px); }
+/* cluster colors */
+.metric.m-ht .metric-accent { background: #16A34A; }
+.metric.m-mt .metric-accent { background: var(--p3); }
+.metric.m-lt .metric-accent { background: var(--p3-light); }
+.metric.m-at .metric-accent { background: #EA580C; }
+.metric.m-kb .metric-accent { background: var(--p3-dark); }
+.metric.m-ht .metric-value { color: #16A34A; }
+.metric.m-mt .metric-value { color: var(--p3); }
+.metric.m-lt .metric-value { color: var(--p3-light); }
+.metric.m-at .metric-value { color: #EA580C; }
+.metric.m-kb .metric-value { color: var(--p3-dark); }
+/* active states */
+.metric.m-ht.active { border-color: #16A34A; background: #F0FDF4; }
+.metric.m-mt.active { border-color: var(--p3); background: var(--p3-pale); }
+.metric.m-lt.active { border-color: var(--p3-light); background: #F5F4FC; }
+.metric.m-at.active { border-color: #EA580C; background: #FFF7ED; }
+.metric.m-kb.active { border-color: var(--p3-dark); background: var(--p3-pale); }
+.metric.active .metric-arrow { color: var(--text-2); }
+.metric.active { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+/* ─── VIEW HEADER ────────────────────────────────────────── */
+.view-header { padding: 22px 28px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.view-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px;
+  border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.view-badge.ht { background: #DCFCE7; color: #15803D; }
+.view-badge.mt { background: var(--p3-pale); color: var(--p3); }
+.view-badge.lt { background: #F3F4F6; color: #4B5563; }
+.view-badge.at { background: #FEF3C7; color: #B45309; }
+.view-badge.kb { background: var(--p3-pale); color: var(--p3-dark); }
+.view-rule { font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+/* ─── CLIENT TABLE ───────────────────────────────────────── */
+.table-wrap { padding: 0 28px 32px; }
+.client-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.client-table thead th {
+  font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase;
+  letter-spacing: 1px; padding: 0 16px 8px; text-align: left;
+}
+.client-table tbody tr {
+  background: var(--white); box-shadow: var(--shadow-sm);
+  border-radius: 12px; transition: all 0.15s; cursor: pointer;
+}
+.client-table tbody tr:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.client-table td { padding: 14px 16px; vertical-align: middle; }
+.client-table td:first-child { border-radius: 12px 0 0 12px; }
+.client-table td:last-child { border-radius: 0 12px 12px 0; }
+.client-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.client-id { font-size: 10px; color: var(--text-2); margin-top: 2px; font-weight: 500; }
+.client-phone { color: var(--p3); text-decoration: none; font-size: 12px; font-weight: 600; }
+.client-phone:hover { text-decoration: underline; }
+.gtv-pill {
+  display: inline-block; background: var(--p3-pale); color: var(--p3-dark);
+  padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
+}
+.months-badge {
+  font-size: 11px; color: var(--text-2); background: #F3F4F6;
+  padding: 3px 8px; border-radius: 6px; font-weight: 600;
+}
+.motivo-pill { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.mp-dormant-ht { background: #FEE2E2; color: #991B1B; }
+.mp-dormant-mt { background: #FEF3C7; color: #92400E; }
+.mp-ht-mt { background: #DBEAFE; color: #1E40AF; }
+.mp-ht-lt { background: #EDE9FE; color: #5B21B6; }
+.mp-mt-lt { background: #F3F4F6; color: #374151; }
+.contacted-toggle {
+  width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--border);
+  background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.contacted-toggle.on { background: #16A34A; border-color: #16A34A; }
+.contacted-toggle.on::after { content: '✓'; color: white; font-size: 12px; font-weight: 800; }
+.btn-action {
+  background: var(--p3); color: white; border: none; border-radius: 8px;
+  padding: 6px 14px; font-size: 11px; font-weight: 700; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s; white-space: nowrap;
+}
+.btn-action:hover { background: var(--p3-dark); }
+
+/* ─── LOADING ────────────────────────────────────────────── */
+#loading-overlay {
+  position: fixed; inset: 0; background: rgba(244,243,251,0.9); z-index: 80;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+}
+.spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--p3); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--text-2); font-weight: 500; }
+
+/* ─── DRAWER ─────────────────────────────────────────────── */
+#drawer-overlay { position: fixed; inset: 0; background: rgba(30,28,74,0.35); z-index: 40; display: none; backdrop-filter: blur(3px); }
+#drawer {
+  position: fixed; right: 0; top: 0; bottom: 0; width: 440px; max-width: 100vw;
+  background: white; z-index: 50; display: flex; flex-direction: column;
+  box-shadow: -8px 0 40px rgba(45,43,107,0.15); transform: translateX(100%); transition: transform 0.25s ease;
+}
+#drawer.open { transform: translateX(0); }
+.drawer-header { padding: 22px 24px 18px; border-bottom: 1px solid var(--border); position: relative; }
+.drawer-cluster-tag { margin-bottom: 8px; }
+.drawer-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -0.3px; }
+.drawer-motivo { font-size: 11px; color: var(--text-2); font-weight: 500; margin-top: 4px; }
+.drawer-close { position: absolute; top: 18px; right: 20px; background: var(--p3-bg); border: none; font-size: 18px; cursor: pointer; color: var(--text-2); line-height: 1; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.drawer-close:hover { background: var(--p3-pale); color: var(--p3); }
+.drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+.drawer-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-item { background: var(--p3-bg); border-radius: 10px; padding: 12px 14px; border: 1px solid var(--border); }
+.info-label { font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px; }
+.info-value { font-size: 14px; font-weight: 700; color: var(--text); }
+.info-value.mono { font-size: 11px; font-family: monospace; }
+.copy-btn { font-size: 10px; color: var(--p3); cursor: pointer; margin-left: 5px; font-weight: 600; }
+
+.form-section { display: flex; flex-direction: column; gap: 12px; }
+.form-label { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
+.form-select, .form-textarea {
+  width: 100%; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 13px; font-family: var(--font); background: white; color: var(--text);
+  transition: border-color 0.15s;
+}
+.form-select:focus, .form-textarea:focus { outline: none; border-color: var(--p3-light); }
+.form-textarea { min-height: 80px; resize: vertical; }
+.form-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--p3-bg); border-radius: 10px; border: 1px solid var(--border); }
+.toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: #D1D5DB; border-radius: 22px; cursor: pointer; transition: 0.2s; }
+.toggle-slider:before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+.toggle input:checked + .toggle-slider { background: #16A34A; }
+.toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+.toggle-label { font-size: 13px; font-weight: 600; color: var(--text); }
+
+.btn-primary {
+  width: 100%; padding: 11px; background: var(--p3); color: white; border: none;
+  border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--p3-dark); }
+.btn-primary:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+.history-section { padding-top: 4px; }
+.history-title { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.history-item { padding: 10px 12px; background: var(--p3-bg); border-radius: 10px; margin-bottom: 7px; border: 1px solid var(--border); }
+.history-meta { font-size: 10px; color: var(--text-2); font-weight: 500; }
+.history-text { font-size: 12px; margin-top: 3px; color: var(--text); }
+
+/* ─── TASKS ──────────────────────────────────────────────── */
+.tasks-top { padding: 0 28px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tasks-info { font-size: 12px; color: var(--text-2); font-weight: 500; flex: 1; }
+.tasks-refresh { background: var(--p3-bg); border: 1.5px solid var(--border); color: var(--p3); border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+.tasks-refresh:hover { background: var(--p3-pale); }
+.tasks-section { padding: 0 28px 8px; }
+.tasks-section-hdr {
+  display: flex; align-items: center; gap: 10px; padding: 14px 0 10px;
+  border-bottom: 2px solid var(--border); margin-bottom: 8px;
+}
+.tasks-hdr-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.tasks-hdr-title { font-size: 12px; font-weight: 800; color: var(--text); }
+.tasks-hdr-count { background: var(--p3-bg); border: 1px solid var(--border); padding: 2px 10px; border-radius: 20px; font-size: 10px; color: var(--text-2); font-weight: 700; }
+.task-item {
+  display: grid;
+  grid-template-columns: 30px 1fr auto auto auto auto;
+  align-items: center; gap: 14px;
+  padding: 13px 16px; background: white; border-radius: 12px;
+  border: 1px solid var(--border); margin-bottom: 6px;
+  box-shadow: var(--shadow-sm); transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+.task-item:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.task-item.ts-done { opacity: 0.45; }
+.task-item.tp1 { border-left-color: #DC2626; }
+.task-item.tp2 { border-left-color: #7C3AED; }
+.task-item.tp3 { border-left-color: #D97706; }
+.task-item.tp4 { border-left-color: #2563EB; }
+.task-item.tp5 { border-left-color: #9CA3AF; }
+.task-rank { font-size: 12px; font-weight: 800; color: var(--text-2); text-align: center; }
+.task-info { min-width: 0; }
+.task-company { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task-contact { font-size: 11px; color: var(--text-2); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.task-gtv-col { text-align: right; white-space: nowrap; }
+.task-gtv-val { font-size: 14px; font-weight: 800; color: var(--p3-dark); }
+.task-gtv-sub { font-size: 10px; color: var(--text-2); }
+.task-motivo { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.tm-p1 { background: #FEE2E2; color: #991B1B; }
+.tm-p2 { background: #EDE9FE; color: #5B21B6; }
+.tm-p3 { background: #FEF3C7; color: #92400E; }
+.tm-p4 { background: #DBEAFE; color: #1E40AF; }
+.tm-p5 { background: #F3F4F6; color: #374151; }
+.task-status-btn {
+  padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  border: none; cursor: pointer; font-family: var(--font); white-space: nowrap; transition: all 0.15s;
+}
+.tst-0 { background: #F3F4F6; color: #374151; }
+.tst-1 { background: #DBEAFE; color: #1E40AF; }
+.tst-2 { background: #FEF3C7; color: #92400E; }
+.tst-3 { background: #DCFCE7; color: #15803D; }
+.task-reg { background: var(--p3); color: white; border: none; border-radius: 8px; padding: 6px 14px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+.task-reg:hover { background: var(--p3-dark); }
+.tasks-empty { font-size: 12px; color: var(--text-2); text-align: center; padding: 24px 0; font-weight: 500; }
+.tasks-done-section { padding: 0 28px 32px; }
+.tasks-done-hdr { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; padding: 14px 0 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.tasks-done-hdr:hover { color: var(--text); }
+
+/* ─── KANBAN (dentro de Tasks) ───────────────────────────── */
+.kanban-divider { margin: 8px 28px 0; border: none; border-top: 2px solid var(--border); }
+.kanban-sub-header { display: flex; align-items: center; gap: 12px; padding: 20px 28px 14px; }
+.kanban-sub-title { font-size: 14px; font-weight: 800; color: var(--text); }
+.kanban-sub-info { font-size: 12px; color: var(--text-2); font-weight: 500; flex: 1; }
+.kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 28px 32px; }
+.kanban-col { background: var(--white); border-radius: 14px; padding: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.kanban-col-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-2); }
+.kc-count { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.col-0 .kc-count { background: var(--p3-pale); color: var(--p3-dark); }
+.col-1 .kc-count { background: #DBEAFE; color: #1E40AF; }
+.col-2 .kc-count { background: #FEF3C7; color: #92400E; }
+.col-3 .kc-count { background: #DCFCE7; color: #15803D; }
+.kanban-col-body { display: flex; flex-direction: column; gap: 7px; min-height: 60px; }
+.kanban-col-body.drag-over { background: var(--p3-pale); border-radius: 8px; outline: 2px dashed var(--p3-light); }
+.kcard {
+  background: var(--p3-bg); border-radius: 10px; padding: 10px 12px;
+  border: 1px solid var(--border); cursor: grab; transition: all 0.15s; user-select: none;
+  border-left: 3px solid transparent;
+}
+.kcard:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.kcard.dragging { opacity: 0.4; cursor: grabbing; }
+.kcard.p1 { border-left-color: #DC2626; }
+.kcard.p2 { border-left-color: #D97706; }
+.kcard.p3 { border-left-color: #7C3AED; }
+.kcard.p4 { border-left-color: #2563EB; }
+.kcard.p5 { border-left-color: #9CA3AF; }
+.kcard-name { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 3px; line-height: 1.3; }
+.kcard-contact { font-size: 10px; color: var(--text-2); margin-bottom: 5px; }
+.kcard-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 20px; display: inline-block; margin-bottom: 5px; }
+.kcard-badge.p1 { background: #FEE2E2; color: #991B1B; }
+.kcard-badge.p2 { background: #FEF3C7; color: #92400E; }
+.kcard-badge.p3 { background: #EDE9FE; color: #5B21B6; }
+.kcard-badge.p4 { background: #DBEAFE; color: #1E40AF; }
+.kcard-badge.p5 { background: #F3F4F6; color: #374151; }
+.kcard-gtv { font-size: 12px; font-weight: 800; color: var(--p3-dark); margin-bottom: 6px; }
+.kcard-footer { display: flex; align-items: center; gap: 5px; }
+.kcard-phone { font-size: 10px; color: var(--p3); text-decoration: none; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kcard-phone:hover { text-decoration: underline; }
+.kcard-reg { background: var(--p3); color: white; border: none; border-radius: 5px; padding: 3px 8px; font-size: 9px; font-weight: 700; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+.kcard-reg:hover { background: var(--p3-dark); }
+.kanban-empty { font-size: 11px; color: var(--text-2); text-align: center; padding: 16px 0; font-weight: 500; }
+
+/* ─── FEEDBACK MODAL ─────────────────────────────────────── */
+#feedback-overlay {
+  position: fixed; inset: 0; background: rgba(30,28,74,0.4); z-index: 60;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+}
+.feedback-modal {
+  background: white; border-radius: 20px; padding: 32px; width: 480px; max-width: 96vw;
+  box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 16px;
+}
+.feedback-modal h2 { font-size: 18px; font-weight: 800; color: var(--text); }
+.feedback-modal p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-secondary { padding: 9px 18px; background: white; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text); font-family: var(--font); }
+.btn-submit { padding: 9px 22px; background: var(--p3); color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+.btn-submit:hover { background: var(--p3-dark); }
+
+/* ─── TOAST ──────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 90;
+  background: var(--p3-dark); color: white; padding: 12px 20px; border-radius: 12px;
+  font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg);
+  transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.error { background: var(--red); }
+#toast.success { background: #065F46; }
+
+/* ─── VIEW PANELS ────────────────────────────────────────── */
+.view { display: none; }
+.view.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo-wrap">
+      <div class="login-logo-icon">P3</div>
+      <div class="login-logo-text">
+        <div class="login-logo-name">Portão 3</div>
+        <div class="login-logo-sub">Cluster CRM</div>
+      </div>
+    </div>
+    <div class="login-divider"></div>
+    <div class="login-headline">Bem-vindo de volta</div>
+    <div class="login-sub">Faça login com sua conta Portão 3 para acessar o painel de clientes.</div>
+    <button class="login-btn" onclick="signIn()">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Entrar com Google Workspace
+    </button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-note">Acesso restrito a @portao3.com.br</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">P3</div>
+      <div class="sidebar-brand-text">
+        <div class="sidebar-brand-name">Cluster CRM</div>
+        <div class="sidebar-brand-sub">Portão 3</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Clusters</div>
+      <div class="nav-item active" onclick="switchView('ht')">
+        <span class="nav-icon">●</span>
+        <span class="nav-label">High Touch</span>
+        <span class="nav-badge" id="nb-ht">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('mt')">
+        <span class="nav-icon">●</span>
+        <span class="nav-label">Mid Touch</span>
+        <span class="nav-badge" id="nb-mt">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('lt')">
+        <span class="nav-icon">●</span>
+        <span class="nav-label">Low Touch</span>
+        <span class="nav-badge" id="nb-lt">—</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Prioridade</div>
+      <div class="nav-item danger" onclick="switchView('at')">
+        <span class="nav-icon">⚠</span>
+        <span class="nav-label">Atenção</span>
+        <span class="nav-badge" id="nb-at">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('tasks')">
+        <span class="nav-icon">✅</span>
+        <span class="nav-label">Tasks</span>
+        <span class="nav-badge" id="nb-kb">—</span>
+      </div>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-period" id="period-label">📅 —</div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="user-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="user-name">—</div>
+        <div class="sidebar-user-email" id="user-email">—</div>
+      </div>
+      <button class="sidebar-signout" onclick="signOut()" title="Sair">↩</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div class="setup-banner" id="setup-banner">
+      ⚠️ Log Sheet não configurada — os contatos não serão salvos.
+      <button onclick="createLogSheet()">Criar agora</button>
+    </div>
+
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">High Touch</div>
+        <div class="topbar-subtitle" id="topbar-sub">Clientes com GTV ≥ R$100k em todos os meses</div>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="topbar-search" type="text" id="global-search" placeholder="Buscar cliente…" oninput="filterCurrent(this.value)">
+      </div>
+      <button class="btn-feedback" onclick="openFeedback()">💬 Feedback</button>
+    </div>
+
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loading-text">Carregando clusters…</div>
+    </div>
+
+    <div id="content">
+      <!-- Metrics -->
+      <div class="metrics" id="metrics-row">
+        <div class="metric m-ht active" id="mc-ht" onclick="switchView('ht')"><div class="metric-accent"></div><div class="metric-label">High Touch</div><div class="metric-value" id="m-ht-n">—</div><div class="metric-sub" id="m-ht-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-mt" id="mc-mt" onclick="switchView('mt')"><div class="metric-accent"></div><div class="metric-label">Mid Touch</div><div class="metric-value" id="m-mt-n">—</div><div class="metric-sub" id="m-mt-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-lt" id="mc-lt" onclick="switchView('lt')"><div class="metric-accent"></div><div class="metric-label">Low Touch</div><div class="metric-value" id="m-lt-n">—</div><div class="metric-sub" id="m-lt-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-at" id="mc-at" onclick="switchView('at')"><div class="metric-accent"></div><div class="metric-label">⚠ Atenção</div><div class="metric-value" id="m-at-n">—</div><div class="metric-sub" id="m-at-g">—</div><span class="metric-arrow">→</span></div>
+        <div class="metric m-kb" id="mc-tasks" onclick="switchView('tasks')"><div class="metric-accent"></div><div class="metric-label">✅ Tasks</div><div class="metric-value" id="m-kb-n">—</div><div class="metric-sub">clientes prioritários</div><span class="metric-arrow">→</span></div>
+      </div>
+
+      <!-- HT View -->
+      <div class="view active" id="view-ht">
+        <div class="view-header"><span class="view-badge ht">● High Touch</span><span class="view-rule">GTV ≥ R$100k em todos os 6 meses · Excluindo bloqueados Swap</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-ht"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- MT View -->
+      <div class="view" id="view-mt">
+        <div class="view-header"><span class="view-badge mt">● Mid Touch</span><span class="view-rule">GTV entre R$50k e R$100k em todos os meses</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-mt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- LT View -->
+      <div class="view" id="view-lt">
+        <div class="view-header"><span class="view-badge lt">● Low Touch</span><span class="view-rule">Perenes nos últimos 6 meses · Média abaixo de R$50k</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-lt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- AT View -->
+      <div class="view" id="view-at">
+        <div class="view-header"><span class="view-badge at">⚠ Atenção</span><span class="view-rule">Degradação de cluster ou adormecimento nos últimos 30 dias</span></div>
+        <div class="table-wrap"><table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- TASKS View -->
+      <div class="view" id="view-tasks">
+        <div class="view-header"><span class="view-badge kb">✅ Tasks de Contato</span></div>
+        <div class="tasks-top">
+          <div class="tasks-info">Adormecidos primeiro · Depois clientes em queda · Ordenados por GTV</div>
+          <button class="tasks-refresh" onclick="loadTasks(true)">↺ Atualizar</button>
+        </div>
+        <div class="tasks-section" id="tasks-dormant-section">
+          <div class="tasks-section-hdr">
+            <span class="tasks-hdr-dot" style="background:#DC2626"></span>
+            <span class="tasks-hdr-title">🔴 Adormecidos</span>
+            <span class="tasks-hdr-count" id="tasks-dormant-count">0</span>
+          </div>
+          <div id="tasks-dormant-list"><div class="tasks-empty">Carregando…</div></div>
+        </div>
+        <div class="tasks-section" id="tasks-decline-section">
+          <div class="tasks-section-hdr">
+            <span class="tasks-hdr-dot" style="background:#D97706"></span>
+            <span class="tasks-hdr-title">🟡 Em Queda</span>
+            <span class="tasks-hdr-count" id="tasks-decline-count">0</span>
+          </div>
+          <div id="tasks-decline-list"></div>
+        </div>
+        <div class="tasks-done-section" id="tasks-done-section" style="display:none">
+          <div class="tasks-done-hdr" onclick="toggleDoneSection()">
+            <span>✅ Concluídos</span><span id="tasks-done-count" style="background:var(--p3-bg);border:1px solid var(--border);padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700">0</span>
+            <span style="margin-left:auto;font-size:12px" id="tasks-done-chevron">▼</span>
+          </div>
+          <div id="tasks-done-list" style="display:none"></div>
+        </div>
+
+        <!-- KANBAN abaixo das Tasks -->
+        <hr class="kanban-divider">
+        <div class="kanban-sub-header">
+          <div>
+            <div class="kanban-sub-title">📋 Kanban</div>
+          </div>
+          <div class="kanban-sub-info">Arraste os cards entre as colunas para acompanhar o andamento</div>
+        </div>
+        <div class="kanban-board">
+          <div class="kanban-col col-0" ondragover="onDragOver(event)" ondrop="onDrop(event,'0')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📬 A Contactar</span><span class="kc-count" id="kc-0">0</span></div>
+            <div class="kanban-col-body" id="kb-0"></div>
+          </div>
+          <div class="kanban-col col-1" ondragover="onDragOver(event)" ondrop="onDrop(event,'1')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📞 Em Contato</span><span class="kc-count" id="kc-1">0</span></div>
+            <div class="kanban-col-body" id="kb-1"></div>
+          </div>
+          <div class="kanban-col col-2" ondragover="onDragOver(event)" ondrop="onDrop(event,'2')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">📅 Agendado</span><span class="kc-count" id="kc-2">0</span></div>
+            <div class="kanban-col-body" id="kb-2"></div>
+          </div>
+          <div class="kanban-col col-3" ondragover="onDragOver(event)" ondrop="onDrop(event,'3')" ondragleave="onDragLeave(event)">
+            <div class="kanban-col-header"><span class="kanban-col-title">✅ Concluído</span><span class="kc-count" id="kc-3">0</span></div>
+            <div class="kanban-col-body" id="kb-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <div class="drawer-header">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <div class="drawer-cluster-tag"><span class="view-badge" id="d-cluster-tag">—</span></div>
+    <div class="drawer-title" id="d-name">—</div>
+    <div class="drawer-motivo" id="d-motivo"></div>
+  </div>
+  <div class="drawer-body">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">Realm ID</div><div class="info-value mono" id="d-realm-id">—<span class="copy-btn" onclick="copyRealmId()">copiar</span></div></div>
+      <div class="info-item"><div class="info-label">Telefone</div><div class="info-value"><a class="client-phone" id="d-phone" href="#">—</a></div></div>
+      <div class="info-item"><div class="info-label">Média/mês</div><div class="info-value" id="d-avg">—</div></div>
+      <div class="info-item"><div class="info-label">Total 6 meses</div><div class="info-value" id="d-total">—</div></div>
+    </div>
+    <div class="form-section">
+      <div><label class="form-label">👤 Nome do contato</label>
+        <input type="text" class="form-select" id="d-contact-name" placeholder="Ex: João Silva — CEO" style="font-size:13px">
+      </div>
+      <div><label class="form-label">Tipo de contato</label>
+        <select class="form-select" id="d-type">
+          <option value="call">📞 Ligação</option>
+          <option value="whatsapp">💬 WhatsApp</option>
+          <option value="email">✉️ E-mail</option>
+          <option value="meeting">🤝 Reunião</option>
+          <option value="other">Outro</option>
+        </select>
+      </div>
+      <div><label class="form-label">Notas</label>
+        <textarea class="form-textarea" id="d-notes" placeholder="O que foi discutido, próximos passos…"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="toggle"><input type="checkbox" id="d-contacted-toggle"><span class="toggle-slider"></span></label>
+        <span class="toggle-label">Contactado este mês</span>
+      </div>
+    </div>
+    <div class="history-section">
+      <div class="history-title">Histórico de contatos</div>
+      <div id="d-history"><div style="font-size:12px;color:var(--text-2)">Carregando…</div></div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn-primary" onclick="saveContact()" id="d-save-btn">Salvar registro</button>
+  </div>
+</div>
+
+<!-- FEEDBACK -->
+<div id="feedback-overlay">
+  <div class="feedback-modal">
+    <h2>💬 Feedback & Solicitações</h2>
+    <p>Sugestões de melhoria, bugs ou novas funcionalidades para o CRM.</p>
+    <div><label class="form-label">Categoria</label>
+      <select class="form-select" id="fb-category">
+        <option value="feature">🚀 Nova funcionalidade</option>
+        <option value="improvement">✨ Melhoria</option>
+        <option value="bug">🐛 Bug</option>
+        <option value="other">Outro</option>
+      </select>
+    </div>
+    <div><label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="fb-text" placeholder="Descreva sua sugestão…" style="min-height:100px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeFeedback()">Cancelar</button>
+      <button class="btn-submit" onclick="submitFeedback()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══ CONFIG ════════════════════════════════════════════════
+const CONFIG = {
+  GOOGLE_CLIENT_ID: '309946949026-jjii91uevgct1c2ulitgros0jm4mpg51.apps.googleusercontent.com',
+  ALLOWED_DOMAIN: 'portao3.com.br',
+  BQ_PROJECT: 'p3-data-lake',
+  SHEET_ID: localStorage.getItem('p3_sheet_id') || '',
+};
+
+// ══ STATE ═════════════════════════════════════════════════
+const state = {
+  accessToken: null, user: null, clients: [],
+  contactedThisMonth: new Set(), drawerClient: null,
+  currentView: 'ht', monthRef: new Date().toISOString().slice(0, 7),
+};
+
+const VIEW_META = {
+  ht: { title: 'High Touch', sub: 'GTV ≥ R$100k em todos os 6 meses · Excluindo bloqueados Swap' },
+  mt: { title: 'Mid Touch', sub: 'GTV entre R$50k e R$100k em todos os meses' },
+  lt: { title: 'Low Touch', sub: 'Perenes nos últimos 6 meses · Média abaixo de R$50k' },
+  at: { title: 'Atenção', sub: 'Degradação de cluster ou adormecimento nos últimos 30 dias' },
+  tasks: { title: 'Tasks', sub: 'Adormecidos primeiro · Em queda · Ordenados por GTV' },
+};
+
+// ══ AUTH ══════════════════════════════════════════════════
+let tokenClient;
+window.onload = () => {
+  if (typeof google === 'undefined') { setTimeout(() => window.onload(), 500); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    scope: ['https://www.googleapis.com/auth/bigquery.readonly','https://www.googleapis.com/auth/spreadsheets','openid email profile'].join(' '),
+    hosted_domain: CONFIG.ALLOWED_DOMAIN,
+    callback: handleToken,
+  });
+};
+function signIn() { tokenClient.requestAccessToken({ prompt: '' }); }
+async function handleToken(resp) {
+  if (resp.error) { showLoginError('Erro: ' + resp.error); return; }
+  state.accessToken = resp.access_token;
+  try {
+    const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${state.accessToken}` } }).then(r => r.json());
+    if (!info.email?.endsWith('@' + CONFIG.ALLOWED_DOMAIN)) { state.accessToken = null; showLoginError(`Acesso permitido apenas para @${CONFIG.ALLOWED_DOMAIN}`); return; }
+    state.user = info;
+    showApp();
+  } catch(e) { showLoginError('Não foi possível verificar o usuário.'); }
+}
+function signOut() {
+  google.accounts.oauth2.revoke(state.accessToken);
+  state.accessToken = null; state.user = null;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+}
+function showLoginError(msg) { const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; }
+
+// ══ APP INIT ══════════════════════════════════════════════
+async function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('user-name').textContent = (state.user.name||'').split(' ').slice(0,2).join(' ');
+  document.getElementById('user-email').textContent = state.user.email || '';
+  const av = document.getElementById('user-avatar');
+  if (state.user.picture) av.innerHTML = `<img src="${state.user.picture}">`;
+  else av.textContent = (state.user.name||'U')[0].toUpperCase();
+  if (!CONFIG.SHEET_ID) document.getElementById('setup-banner').style.display = 'flex';
+  else await loadContactedThisMonth();
+  document.getElementById('loading-overlay').style.display = 'flex';
+  await loadClusters();
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// ══ BIGQUERY ══════════════════════════════════════════════
+const BQ_QUERY = `
+WITH params AS (
+  SELECT DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH),MONTH) AS window_start,
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 3 MONTH),MONTH) AS mid_point,
+    DATE_TRUNC(CURRENT_DATE(),MONTH) AS window_end,
+    DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) AS dormant_cutoff
+),
+blocked AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status='REPROVED'),
+phones AS (SELECT realmId, ANY_VALUE(phoneNumber) AS phone FROM \`p3-data-lake.consolidado.accounts\` WHERE phoneNumber IS NOT NULL AND status!='REPROVED' GROUP BY 1),
+monthly_6m AS (
+  SELECT t.realmId,t.realmName,FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv
+  FROM \`p3-data-lake.consolidado.transactions\` t,params p
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end AND t.realmId NOT IN(SELECT realmId FROM blocked)
+  GROUP BY 1,2,3
+),
+recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t,params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN(SELECT realmId FROM blocked)),
+rn AS (SELECT realmId,ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
+s6 AS (SELECT realmId,COUNT(*) AS ma,ROUND(AVG(gtv),0) AS avg_g,ROUND(MIN(gtv),0) AS min_g,ROUND(MAX(gtv),0) AS max_g,ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
+h1 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+h2 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+wi AS (SELECT DATE_DIFF(window_end,window_start,MONTH) AS total_months FROM params),
+mc AS (
+  SELECT rn.realmName,s.realmId,s.ma AS months_active,wi.total_months,s.avg_g AS avg_monthly_gtv,s.min_g AS min_monthly_gtv,s.max_g AS max_monthly_gtv,s.tot_g AS total_gtv_6m,
+    CASE WHEN s.min_g>=100000 THEN 'High Touch' WHEN s.min_g>=50000 THEN 'Mid Touch' WHEN s.ma=wi.total_months THEN 'Low Touch' END AS cluster,
+    CAST(NULL AS STRING) AS motivo,CAST(NULL AS FLOAT64) AS avg_h1,CAST(NULL AS FLOAT64) AS avg_h2
+  FROM s6 s JOIN rn USING(realmId) CROSS JOIN wi
+  WHERE s.min_g>=50000 OR s.ma=wi.total_months
+),
+ar AS (
+  SELECT rn.realmName,h1.realmId,COALESCE(s6.ma,h1.ma) AS months_active,wi.total_months,
+    COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv,COALESCE(s6.min_g,h1.min_g) AS min_monthly_gtv,
+    COALESCE(s6.max_g,h1.avg_g) AS max_monthly_gtv,COALESCE(s6.tot_g,h1.avg_g*h1.ma) AS total_gtv_6m,
+    'Atenção' AS cluster,
+    CASE
+      WHEN ra.realmId IS NULL AND h1.min_g>=100000 THEN 'Adormecido — era High Touch'
+      WHEN ra.realmId IS NULL AND h1.min_g>=50000  THEN 'Adormecido — era Mid Touch'
+      WHEN h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000 AND h2.min_g>=50000 THEN 'High Touch → Mid Touch'
+      WHEN h1.min_g>=100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'High Touch → Low Touch'
+      WHEN h1.min_g>=50000 AND h1.min_g<100000 AND (h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'Mid Touch → Low Touch'
+    END AS motivo,
+    h1.avg_g AS avg_h1,COALESCE(h2.avg_g,0) AS avg_h2
+  FROM h1 CROSS JOIN wi JOIN rn USING(realmId)
+  LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId) LEFT JOIN recent_active ra ON ra.realmId=h1.realmId
+  WHERE h1.min_g>=50000 AND(ra.realmId IS NULL OR(h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR(h1.min_g>=50000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
+)
+SELECT mc.realmName,mc.realmId,mc.months_active,mc.total_months,mc.avg_monthly_gtv,mc.min_monthly_gtv,mc.max_monthly_gtv,mc.total_gtv_6m,mc.cluster,mc.motivo,mc.avg_h1,mc.avg_h2,p.phone FROM mc LEFT JOIN phones p USING(realmId) WHERE mc.cluster IS NOT NULL
+UNION ALL
+SELECT ar.realmName,ar.realmId,ar.months_active,ar.total_months,ar.avg_monthly_gtv,ar.min_monthly_gtv,ar.max_monthly_gtv,ar.total_gtv_6m,ar.cluster,ar.motivo,ar.avg_h1,ar.avg_h2,p.phone FROM ar LEFT JOIN phones p USING(realmId) WHERE ar.motivo IS NOT NULL
+ORDER BY cluster,total_gtv_6m DESC`;
+
+async function bqQuery(sql) {
+  const r = await fetch(`https://bigquery.googleapis.com/bigquery/v2/projects/${CONFIG.BQ_PROJECT}/queries`,
+    { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'},
+      body: JSON.stringify({ query: sql, useLegacySql: false, timeoutMs: 55000 }) });
+  const data = await r.json();
+  if (data.error) throw new Error(data.error.message);
+  if (!data.jobComplete) return await pollBQJob(data.jobReference);
+  return parseBQResult(data);
+}
+async function pollBQJob(jobRef) {
+  for (let i = 0; i < 30; i++) {
+    await new Promise(res => setTimeout(res, 2000));
+    const data = await fetch(`https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/jobs/${jobRef.jobId}`, { headers:{'Authorization':`Bearer ${state.accessToken}`} }).then(r=>r.json());
+    if (data.status?.state==='DONE') {
+      const qr = await fetch(`https://bigquery.googleapis.com/bigquery/v2/projects/${jobRef.projectId}/queries/${jobRef.jobId}`, { headers:{'Authorization':`Bearer ${state.accessToken}`} }).then(r=>r.json());
+      return parseBQResult(qr);
+    }
+  }
+  throw new Error('Query timeout');
+}
+function parseBQResult(data) {
+  const schema = (data.schema?.fields||[]).map(f=>f.name);
+  return (data.rows||[]).map(row => { const obj={}; row.f.forEach((c,i)=>obj[schema[i]]=c.v); return obj; });
+}
+async function loadClusters() {
+  try { state.clients = await bqQuery(BQ_QUERY); renderAll(); }
+  catch(e) { showToast('Erro ao carregar: '+e.message,'error'); }
+}
+
+// ══ SHEETS ════════════════════════════════════════════════
+async function createLogSheet() {
+  document.getElementById('setup-banner').querySelector('button').textContent = 'Criando…';
+  try {
+    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets',
+      { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'},
+        body: JSON.stringify({ properties:{title:'P3 CRM — Cluster Log'}, sheets:[{properties:{title:'Contacts'}},{properties:{title:'Feedback'}}] }) }).then(r=>r.json());
+    CONFIG.SHEET_ID = r.spreadsheetId;
+    localStorage.setItem('p3_sheet_id', CONFIG.SHEET_ID);
+    await sheetsAppend('Contacts',[['Timestamp','RealmId','RealmName','Cluster','ContatadoPor','Email','TipoContato','Notas','MesRef']]);
+    await sheetsAppend('Feedback',[['Timestamp','SubmitPor','Email','Categoria','Texto']]);
+    document.getElementById('setup-banner').style.display = 'none';
+    showToast('✅ Log Sheet criada!','success');
+    await loadContactedThisMonth();
+  } catch(e) { showToast('Erro: '+e.message,'error'); document.getElementById('setup-banner').querySelector('button').textContent='Criar agora'; }
+}
+async function sheetsAppend(sheet, values) {
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheet)}!A1:append?valueInputOption=USER_ENTERED`,
+    { method:'POST', headers:{'Authorization':`Bearer ${state.accessToken}`,'Content-Type':'application/json'}, body:JSON.stringify({values}) });
+}
+async function sheetsRead(sheet, range) {
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(sheet)}!${range}`, { headers:{'Authorization':`Bearer ${state.accessToken}`} }).then(r=>r.json());
+  return r.values||[];
+}
+async function loadContactedThisMonth() {
+  if (!CONFIG.SHEET_ID) return;
+  try { const rows = await sheetsRead('Contacts','A2:I5000'); state.contactedThisMonth = new Set(rows.filter(r=>r[8]===state.monthRef).map(r=>r[1])); } catch(e) {}
+}
+
+// ══ RENDER ════════════════════════════════════════════════
+function fmt(v) {
+  const n=parseFloat(v)||0;
+  if(n>=1e6) return 'R$ '+(n/1e6).toFixed(1).replace('.',',')+'M';
+  if(n>=1e3) return 'R$ '+(n/1e3).toFixed(0)+'K';
+  return 'R$ '+n.toFixed(0);
+}
+function fmtPhone(p) {
+  if(!p) return null;
+  return p.replace('+55','').replace(/(\d{2})(\d{4,5})(\d{4})/,'($1) $2-$3').trim();
+}
+
+function renderAll() {
+  const ht = state.clients.filter(c=>c.cluster==='High Touch');
+  const mt = state.clients.filter(c=>c.cluster==='Mid Touch');
+  const lt = state.clients.filter(c=>c.cluster==='Low Touch');
+  const at = state.clients.filter(c=>c.cluster==='Atenção');
+  const totalGTV = [...ht,...mt,...lt].reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0);
+
+  // Metrics
+  document.getElementById('m-ht-n').textContent = ht.length;
+  document.getElementById('m-mt-n').textContent = mt.length;
+  document.getElementById('m-lt-n').textContent = lt.length;
+  document.getElementById('m-at-n').textContent = at.length;
+  document.getElementById('m-ht-g').textContent = fmt(ht.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
+  document.getElementById('m-mt-g').textContent = fmt(mt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
+  document.getElementById('m-lt-g').textContent = fmt(lt.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em 6m';
+  document.getElementById('m-at-g').textContent = fmt(at.reduce((s,r)=>s+(parseFloat(r.total_gtv_6m)||0),0))+' em risco';
+  document.getElementById('m-kb-n').textContent = at.length;
+  // GTV total in topbar subtitle when on default view
+  document.getElementById('topbar-sub').textContent =
+    state.currentView === 'ht' ? VIEW_META['ht'].sub+' · GTV total 6m: '+fmt(totalGTV) : VIEW_META[state.currentView].sub;
+
+  // Sidebar badges
+  document.getElementById('nb-ht').textContent = ht.length;
+  document.getElementById('nb-mt').textContent = mt.length;
+  document.getElementById('nb-lt').textContent = lt.length;
+  document.getElementById('nb-at').textContent = at.length;
+  document.getElementById('nb-kb').textContent = at.length;
+
+  // Period
+  const now = new Date();
+  const m6 = new Date(now); m6.setMonth(now.getMonth()-6);
+  document.getElementById('period-label').textContent =
+    `📅 ${m6.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})} – ${new Date(now.getFullYear(),now.getMonth()-1).toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}`;
+
+  renderTable('ht',ht); renderTable('mt',mt); renderTable('lt',lt); renderTableAt('at',at);
+}
+
+function renderTable(key, rows) {
+  const tbody = document.querySelector(`#table-${key} tbody`);
+  tbody.innerHTML = '';
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-2);padding:32px">Nenhum cliente neste cluster.</td></tr>'; return; }
+  rows.forEach(r => {
+    const isC = state.contactedThisMonth.has(r.realmId);
+    const ph = fmtPhone(r.phone);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="client-name">${r.realmName}</div><div class="client-id">${r.realmId.slice(0,8)}…</div></td>
+      <td>${ph ? `<a class="client-phone" href="tel:${r.phone}">${ph}</a>` : '<span style="color:var(--text-2);font-size:12px">—</span>'}</td>
+      <td><span class="gtv-pill">${fmt(r.avg_monthly_gtv)}</span></td>
+      <td style="font-size:14px;font-weight:800;color:var(--p3-dark)">${fmt(r.total_gtv_6m)}</td>
+      <td><span class="months-badge">${r.months_active}/${r.total_months}</span></td>
+      <td><div class="contacted-toggle ${isC?'on':''}" id="tg-${r.realmId.slice(0,8)}" onclick="quickToggle('${r.realmId}',this)" title="${isC?'Contactado':'Marcar'}"></div></td>
+      <td><button class="btn-action" onclick="openDrawer('${r.realmId}')">Registrar →</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderTableAt(key, rows) {
+  const tbody = document.querySelector(`#table-${key} tbody`);
+  tbody.innerHTML = '';
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-2);padding:32px">🎉 Nenhum cliente em atenção.</td></tr>'; return; }
+  rows.forEach(r => {
+    const isC = state.contactedThisMonth.has(r.realmId);
+    const ph = fmtPhone(r.phone);
+    const motivo = r.motivo||'';
+    let cls = 'mp-mt-lt';
+    if (motivo.includes('Adormecido')&&motivo.includes('High')) cls='mp-dormant-ht';
+    else if (motivo.includes('Adormecido')) cls='mp-dormant-mt';
+    else if (motivo.includes('→ Mid')) cls='mp-ht-mt';
+    else if (motivo.includes('High Touch → Low')) cls='mp-ht-lt';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="client-name">${r.realmName}</div><div class="client-id">${r.realmId.slice(0,8)}…</div></td>
+      <td>${ph ? `<a class="client-phone" href="tel:${r.phone}">${ph}</a>` : '<span style="color:var(--text-2);font-size:12px">—</span>'}</td>
+      <td><span class="motivo-pill ${cls}">${motivo}</span></td>
+      <td style="font-weight:700">${r.avg_h1?fmt(r.avg_h1):'—'}</td>
+      <td style="font-weight:700;color:${parseFloat(r.avg_h2)>0?'var(--text)':'var(--red)'}">${parseFloat(r.avg_h2)>0?fmt(r.avg_h2):'—'}</td>
+      <td><div class="contacted-toggle ${isC?'on':''}" id="tg-${r.realmId.slice(0,8)}" onclick="quickToggle('${r.realmId}',this)"></div></td>
+      <td><button class="btn-action" onclick="openDrawer('${r.realmId}')">Registrar →</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterCurrent(q) {
+  const v = state.currentView;
+  if (v==='kanban') return;
+  const rows = document.querySelectorAll(`#table-${v} tbody tr`);
+  rows.forEach(tr => tr.style.display = tr.textContent.toLowerCase().includes(q.toLowerCase())?'':'none');
+}
+
+function switchView(view) {
+  state.currentView = view;
+  // sidebar nav
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navMap = {ht:0,mt:1,lt:2,at:3,kanban:4};
+  document.querySelectorAll('.nav-item')[navMap[view]]?.classList.add('active');
+  // metric cards
+  const cardMap = {ht:'mc-ht',mt:'mc-mt',lt:'mc-lt',at:'mc-at',tasks:'mc-tasks'};
+  document.querySelectorAll('.metric').forEach(el => el.classList.remove('active'));
+  const activeCard = document.getElementById(cardMap[view]);
+  if (activeCard) activeCard.classList.add('active');
+  // views
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.getElementById('topbar-title').textContent = VIEW_META[view].title;
+  document.getElementById('topbar-sub').textContent = VIEW_META[view].sub;
+  document.getElementById('global-search').value = '';
+  if (view==='tasks' && !tasksClients.length) loadTasks(false);
+}
+
+// ══ DRAWER ════════════════════════════════════════════════
+function openDrawer(realmId) {
+  const c = state.clients.find(x=>x.realmId===realmId);
+  if (!c) return;
+  state.drawerClient = c;
+  document.getElementById('d-name').textContent = c.realmName;
+  const rid = document.getElementById('d-realm-id');
+  rid.childNodes[0].textContent = c.realmId.slice(0,18)+'…';
+  rid.dataset.full = c.realmId;
+  const ph = document.getElementById('d-phone');
+  ph.textContent = fmtPhone(c.phone)||'—'; ph.href = c.phone?`tel:${c.phone}`:'#';
+  document.getElementById('d-avg').textContent = fmt(c.avg_monthly_gtv);
+  document.getElementById('d-total').textContent = fmt(c.total_gtv_6m);
+  document.getElementById('d-notes').value = '';
+  document.getElementById('d-type').value = 'call';
+  document.getElementById('d-contacted-toggle').checked = state.contactedThisMonth.has(realmId);
+  document.getElementById('d-contact-name').value = getContactNames()[realmId] || '';
+  const tag = document.getElementById('d-cluster-tag');
+  const cls = {'High Touch':'ht','Mid Touch':'mt','Low Touch':'lt','Atenção':'at'}[c.cluster];
+  tag.className = 'view-badge '+(cls||'mt'); tag.textContent = c.cluster;
+  const mot = document.getElementById('d-motivo');
+  mot.textContent = c.motivo||''; mot.style.display = c.motivo?'block':'none';
+  loadHistory(realmId);
+  document.getElementById('drawer-overlay').style.display = 'block';
+  setTimeout(()=>document.getElementById('drawer').classList.add('open'),10);
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').style.display = 'none';
+  state.drawerClient = null;
+}
+async function loadHistory(realmId) {
+  const el = document.getElementById('d-history');
+  if (!CONFIG.SHEET_ID) { el.innerHTML = '<div style="font-size:12px;color:var(--text-2)">Log Sheet não configurada.</div>'; return; }
+  try {
+    const rows = await sheetsRead('Contacts','A2:I5000');
+    const cr = rows.filter(r=>r[1]===realmId).reverse().slice(0,10);
+    if (!cr.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-2)">Nenhum contato registrado.</div>'; return; }
+    el.innerHTML = cr.map(r=>`<div class="history-item"><div class="history-meta">${r[0]} · <strong>${r[4]}</strong> · ${r[6]}</div><div class="history-text">${r[7]||'—'}</div></div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="font-size:12px;color:var(--text-2)">Erro ao carregar.</div>'; }
+}
+async function saveContact() {
+  const c = state.drawerClient; if (!c) return;
+  const btn = document.getElementById('d-save-btn');
+  btn.disabled=true; btn.textContent='Salvando…';
+  const type=document.getElementById('d-type').value, notes=document.getElementById('d-notes').value.trim(), isC=document.getElementById('d-contacted-toggle').checked;
+  const cname = document.getElementById('d-contact-name').value.trim();
+  if (cname) setContactName(c.realmId, cname); else deleteContactName(c.realmId);
+  if (state.currentView==='tasks') renderTasks();
+  if (CONFIG.SHEET_ID) {
+    try { await sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,c.cluster,state.user.name,state.user.email,type,notes,isC?state.monthRef:'']]); } catch(e) {}
+  }
+  if (isC) { state.contactedThisMonth.add(c.realmId); const tg=document.getElementById('tg-'+c.realmId.slice(0,8)); if(tg) tg.classList.add('on'); }
+  btn.disabled=false; btn.textContent='Salvar registro';
+  showToast('✅ Contato registrado!','success');
+  loadHistory(c.realmId);
+}
+async function quickToggle(realmId, el) {
+  const c = state.clients.find(x=>x.realmId===realmId); if (!c) return;
+  const wasOn = el.classList.contains('on'); el.classList.toggle('on');
+  if (CONFIG.SHEET_ID) { try { await sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),realmId,c.realmName,c.cluster,state.user.name,state.user.email,'quick-toggle',wasOn?'(desmarcado)':'(marcado)',wasOn?'':state.monthRef]]); } catch(e) {} }
+  if (!wasOn) state.contactedThisMonth.add(realmId); else state.contactedThisMonth.delete(realmId);
+  showToast(wasOn?'Desmarcado':'✅ Contactado','success');
+}
+function copyRealmId() { navigator.clipboard.writeText(document.getElementById('d-realm-id').dataset.full).then(()=>showToast('Realm ID copiado!','success')); }
+
+// ══ TASKS ═════════════════════════════════════════════════
+const KB_QUERY = `
+WITH params AS (SELECT DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH),MONTH) AS window_start,DATE_TRUNC(DATE_SUB(CURRENT_DATE(),INTERVAL 3 MONTH),MONTH) AS mid_point,DATE_TRUNC(CURRENT_DATE(),MONTH) AS window_end,DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) AS dormant_cutoff),
+excluded AS (SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\` WHERE status IN('REPROVED','CLOSED')),
+phones AS (SELECT realmId,ANY_VALUE(phoneNumber) AS phone FROM \`p3-data-lake.consolidado.accounts\` WHERE phoneNumber IS NOT NULL AND status NOT IN('REPROVED','CLOSED') GROUP BY 1),
+monthly_6m AS (SELECT t.realmId,t.realmName,FORMAT_DATE('%Y-%m',DATE(t.effectiveAt)) AS month,ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0,0) AS gtv FROM \`p3-data-lake.consolidado.transactions\` t,params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.window_start AND DATE(t.effectiveAt)<p.window_end AND t.realmId NOT IN(SELECT realmId FROM excluded) GROUP BY 1,2,3),
+recent_active AS (SELECT DISTINCT t.realmId FROM \`p3-data-lake.consolidado.transactions\` t,params p WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986 AND DATE(t.effectiveAt)>=p.dormant_cutoff AND t.realmId NOT IN(SELECT realmId FROM excluded)),
+rn AS (SELECT realmId,ANY_VALUE(realmName) AS realmName FROM monthly_6m GROUP BY 1),
+h1 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month<FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+h2 AS (SELECT m.realmId,COUNT(*) AS ma,ROUND(MIN(m.gtv),0) AS min_g,ROUND(AVG(m.gtv),0) AS avg_g FROM monthly_6m m,params p WHERE m.month>=FORMAT_DATE('%Y-%m',p.mid_point) GROUP BY 1),
+s6 AS (SELECT realmId,COUNT(*) AS ma,ROUND(AVG(gtv),0) AS avg_g,ROUND(SUM(gtv),0) AS tot_g FROM monthly_6m GROUP BY 1),
+atencao AS (
+  SELECT rn.realmName,h1.realmId,COALESCE(s6.avg_g,h1.avg_g) AS avg_monthly_gtv,COALESCE(s6.tot_g,h1.avg_g*h1.ma) AS total_gtv_6m,ph.phone,
+    CASE WHEN ra.realmId IS NULL AND h1.min_g>=100000 THEN 'Adormecido — era High Touch' WHEN ra.realmId IS NULL AND h1.min_g>=50000 THEN 'Adormecido — era Mid Touch' WHEN h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000 AND h2.min_g>=50000 THEN 'High Touch → Mid Touch' WHEN h1.min_g>=100000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'High Touch → Low Touch' WHEN h1.min_g>=50000 AND h1.min_g<100000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL THEN 'Mid Touch → Low Touch' END AS motivo,
+    ROUND(h1.avg_g,0) AS avg_h1,ROUND(COALESCE(h2.avg_g,0),0) AS avg_h2
+  FROM h1 JOIN rn USING(realmId) LEFT JOIN h2 USING(realmId) LEFT JOIN s6 USING(realmId) LEFT JOIN recent_active ra ON ra.realmId=h1.realmId LEFT JOIN phones ph ON ph.realmId=h1.realmId
+  WHERE h1.min_g>=50000 AND(ra.realmId IS NULL OR(h1.min_g>=100000 AND h2.min_g IS NOT NULL AND h2.min_g<100000) OR(h1.min_g>=50000 AND(h2.min_g IS NULL OR h2.min_g<50000) AND ra.realmId IS NOT NULL))
+)
+SELECT realmName,realmId,motivo,avg_monthly_gtv,total_gtv_6m,phone,
+  CASE motivo
+    WHEN 'Adormecido — era High Touch' THEN 1
+    WHEN 'Adormecido — era Mid Touch'  THEN 2
+    WHEN 'High Touch → Mid Touch'      THEN 3
+    WHEN 'High Touch → Low Touch'      THEN 4
+    WHEN 'Mid Touch → Low Touch'       THEN 5
+  END AS prioridade
+FROM atencao WHERE motivo IS NOT NULL ORDER BY prioridade, total_gtv_6m DESC`;
+
+let tasksClients = [];
+
+// Contact names stored in localStorage
+function getContactNames() { try { return JSON.parse(localStorage.getItem('p3_contact_names')||'{}'); } catch(e) { return {}; } }
+function setContactName(realmId, name) { const n=getContactNames(); n[realmId]=name; localStorage.setItem('p3_contact_names',JSON.stringify(n)); }
+function deleteContactName(realmId) { const n=getContactNames(); delete n[realmId]; localStorage.setItem('p3_contact_names',JSON.stringify(n)); }
+
+// Task statuses: 0=A Contactar, 1=Em Contato, 2=Agendado, 3=Concluído
+const TASK_STATUS = ['📬 A Contactar','📞 Em Contato','📅 Agendado','✅ Concluído'];
+const TASK_STATUS_CLS = ['tst-0','tst-1','tst-2','tst-3'];
+function getTaskStatus() { try { return JSON.parse(localStorage.getItem('p3_task_status')||'{}'); } catch(e) { return {}; } }
+function saveTaskStatus(s) { localStorage.setItem('p3_task_status',JSON.stringify(s)); }
+function cycleStatus(realmId) {
+  const st=getTaskStatus(); const cur=parseInt(st[realmId]||'0');
+  st[realmId]=String((cur+1)%4); saveTaskStatus(st);
+  if (st[realmId]==='3'&&CONFIG.SHEET_ID) {
+    const c=tasksClients.find(x=>x.realmId===realmId);
+    if(c) sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,'Atenção',state.user?.name||'',state.user?.email||'','task-concluida','Tarefa concluída',state.monthRef]]).catch(()=>{});
+  }
+  renderTasks();
+}
+
+async function loadTasks(force) {
+  if (!tasksClients.length||force) {
+    document.getElementById('tasks-dormant-list').innerHTML = '<div class="tasks-empty">Carregando…</div>';
+    try { tasksClients = await bqQuery(KB_QUERY); } catch(e) { showToast('Erro Tasks: '+e.message,'error'); return; }
+  }
+  document.getElementById('nb-kb').textContent = tasksClients.length;
+  renderTasks();
+}
+
+function renderTasks() {
+  const st = getTaskStatus();
+  const names = getContactNames();
+  // separate dormant vs declining, then done
+  const dormant = tasksClients.filter(c=>parseInt(c.prioridade)<=2 && st[c.realmId]!=='3');
+  const decline = tasksClients.filter(c=>parseInt(c.prioridade)>2  && st[c.realmId]!=='3');
+  const done    = tasksClients.filter(c=>st[c.realmId]==='3');
+  // sort each group by total_gtv_6m desc (already ordered from BQ within groups, but re-sort for safety)
+  const byGtv = (a,b) => (parseFloat(b.total_gtv_6m)||0)-(parseFloat(a.total_gtv_6m)||0);
+  dormant.sort(byGtv); decline.sort(byGtv);
+
+  document.getElementById('tasks-dormant-count').textContent = dormant.length;
+  document.getElementById('tasks-decline-count').textContent = decline.length;
+  document.getElementById('tasks-done-count').textContent = done.length;
+
+  renderTaskList('tasks-dormant-list', dormant, st, names);
+  renderTaskList('tasks-decline-list', decline, st, names);
+  renderTaskList('tasks-done-list', done, st, names);
+
+  const doneSection = document.getElementById('tasks-done-section');
+  doneSection.style.display = done.length ? 'block' : 'none';
+  renderKanban();
+}
+
+function renderTaskList(containerId, list, st, names) {
+  const el = document.getElementById(containerId);
+  if (!list.length) { el.innerHTML = '<div class="tasks-empty">Nenhum cliente aqui.</div>'; return; }
+  el.innerHTML = '';
+  list.forEach((c, i) => {
+    const p = parseInt(c.prioridade)||5;
+    const status = parseInt(st[c.realmId]||'0');
+    const ph = fmtPhone(c.phone);
+    const cname = names[c.realmId]||'';
+    const moClass = ['tm-p1','tm-p2','tm-p3','tm-p4','tm-p5'][p-1]||'tm-p5';
+    const row = document.createElement('div');
+    row.className = `task-item tp${p}${status===3?' ts-done':''}`;
+    row.innerHTML = `
+      <div class="task-rank">#${i+1}</div>
+      <div class="task-info">
+        <div class="task-company">${c.realmName}</div>
+        <div class="task-contact">👤 ${cname||'<span style="color:#C4C4D8">Sem contato</span>'}</div>
+      </div>
+      <div class="task-gtv-col">
+        <div class="task-gtv-val">${fmt(c.avg_monthly_gtv)}</div>
+        <div class="task-gtv-sub">/mês</div>
+      </div>
+      <span class="task-motivo ${moClass}">${c.motivo}</span>
+      ${ph ? `<a class="client-phone" href="tel:${c.phone}" style="white-space:nowrap;font-size:11px" onclick="event.stopPropagation()">📞 ${ph}</a>` : '<span style="font-size:11px;color:var(--text-2)">—</span>'}
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="task-status-btn ${TASK_STATUS_CLS[status]}" onclick="cycleStatus('${c.realmId}');event.stopPropagation()" title="Clique para avançar o status">${TASK_STATUS[status]}</button>
+        <button class="task-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">Registrar</button>
+      </div>`;
+    el.appendChild(row);
+  });
+}
+
+let doneExpanded = false;
+function toggleDoneSection() {
+  doneExpanded = !doneExpanded;
+  document.getElementById('tasks-done-list').style.display = doneExpanded ? 'block' : 'none';
+  document.getElementById('tasks-done-chevron').textContent = doneExpanded ? '▲' : '▼';
+}
+
+// ══ KANBAN (drag-and-drop, abaixo das tasks) ═══════════════
+let draggedId = null;
+function getKbState() { try { return JSON.parse(localStorage.getItem('p3_kanban_v3')||'{}'); } catch(e) { return {}; } }
+function saveKbState(s) { localStorage.setItem('p3_kanban_v3',JSON.stringify(s)); }
+
+function renderKanban() {
+  const st = getKbState();
+  const names = getContactNames();
+  const cols = [[],[],[],[]];
+  tasksClients.forEach(c => cols[parseInt(st[c.realmId]??'0')].push(c));
+  for (let i=0;i<4;i++) {
+    document.getElementById('kc-'+i).textContent = cols[i].length;
+    const body = document.getElementById('kb-'+i); body.innerHTML='';
+    if (!cols[i].length) { body.innerHTML='<div class="kanban-empty">Vazio</div>'; continue; }
+    // sort by prioridade then gtv
+    cols[i].sort((a,b)=>(parseInt(a.prioridade)||9)-(parseInt(b.prioridade)||9)||(parseFloat(b.total_gtv_6m)||0)-(parseFloat(a.total_gtv_6m)||0));
+    cols[i].forEach(c=>body.appendChild(buildKCard(c, names)));
+  }
+}
+function buildKCard(c, names) {
+  const p=parseInt(c.prioridade)||5, ph=fmtPhone(c.phone);
+  const cname=names[c.realmId]||'';
+  const card=document.createElement('div');
+  card.className=`kcard p${p}`; card.draggable=true; card.dataset.id=c.realmId;
+  card.innerHTML=`
+    <div class="kcard-name">${c.realmName}</div>
+    ${cname?`<div class="kcard-contact">👤 ${cname}</div>`:''}
+    <div class="kcard-badge p${p}">${c.motivo}</div>
+    <div class="kcard-gtv">${fmt(c.avg_monthly_gtv)}<span style="font-size:9px;color:var(--text-2);font-weight:500">/mês</span></div>
+    <div class="kcard-footer">
+      ${ph?`<a class="kcard-phone" href="tel:${c.phone}">📞 ${ph}</a>`:'<span class="kcard-phone" style="color:var(--text-2)">—</span>'}
+      <button class="kcard-reg" onclick="openDrawer('${c.realmId}');event.stopPropagation()">+</button>
+    </div>`;
+  card.addEventListener('dragstart',e=>{ draggedId=c.realmId; setTimeout(()=>card.classList.add('dragging'),0); e.dataTransfer.effectAllowed='move'; });
+  card.addEventListener('dragend',()=>{ card.classList.remove('dragging'); draggedId=null; });
+  return card;
+}
+function onDragOver(e) { e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over'); }
+function onDrop(e,col) {
+  e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body').classList.remove('drag-over');
+  if (!draggedId) return;
+  const st=getKbState(); st[draggedId]=col; saveKbState(st);
+  if (col==='3'&&CONFIG.SHEET_ID) {
+    const c=tasksClients.find(x=>x.realmId===draggedId);
+    if(c) sheetsAppend('Contacts',[[new Date().toLocaleString('pt-BR'),c.realmId,c.realmName,'Atenção',state.user?.name||'',state.user?.email||'','kanban-concluido','Movido para Concluído',state.monthRef]]).catch(()=>{});
+  }
+  renderKanban(); showToast('Card movido!','success');
+}
+
+// ══ FEEDBACK ══════════════════════════════════════════════
+function openFeedback() { document.getElementById('feedback-overlay').style.display='flex'; }
+function closeFeedback() { document.getElementById('feedback-overlay').style.display='none'; }
+async function submitFeedback() {
+  const text=document.getElementById('fb-text').value.trim(); if(!text){showToast('Escreva o feedback.','error');return;}
+  if(CONFIG.SHEET_ID) { try { await sheetsAppend('Feedback',[[new Date().toLocaleString('pt-BR'),state.user.name,state.user.email,document.getElementById('fb-category').value,text]]); } catch(e) {} }
+  document.getElementById('fb-text').value=''; closeFeedback(); showToast('💬 Feedback enviado!','success');
+}
+
+// ══ TOAST ═════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg,type='') {
+  const el=document.getElementById('toast'); el.textContent=msg; el.className='show '+(type||'');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.className='',3500);
+}
+</script>
+</body>
+</html>
