@@ -862,6 +862,40 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
               </div>
             </div>
           </div>
+
+          <!-- CAREFUL HANDOVER -->
+          <div class="aq-detail" id="aq-handover-detail" style="display:none">
+            <div class="aq-detail-title">🤝 Careful Handover — Saíram do M0 esta semana</div>
+            <div class="aq-detail-kpi-row">
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">Clientes</div>
+                <div class="aq-detail-kpi-val" id="aq-ho-count">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">GTV Total em M0</div>
+                <div class="aq-detail-kpi-val" id="aq-ho-gtv">—</div>
+              </div>
+            </div>
+            <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div class="aq-detail-table-title">📋 Clientes que graduaram do M0 nos últimos 7 dias (GTV ≥ R$50K)</div>
+              <div style="max-height:420px;overflow-y:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                  <thead>
+                    <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Cliente</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Contato</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">GTV M0</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:center;border-bottom:1px solid var(--border)">Cluster Atual</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">Saiu do M0</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">Dias em M1</th>
+                    </tr>
+                  </thead>
+                  <tbody id="aq-handover-table"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2045,6 +2079,58 @@ LEFT JOIN open_tickets tk ON tk.realmId = m.realmId
 ORDER BY m.m0_gtv DESC`;
 }
 
+const AQ_HANDOVER_QUERY = `
+WITH m0_grads AS (
+  SELECT
+    realmId,
+    ANY_VALUE(realmName) AS realm_name,
+    ANY_VALUE(DATE(realmFirstTransactionDate)) AS first_txn_date,
+    DATE_ADD(ANY_VALUE(DATE(realmFirstTransactionDate)), INTERVAL 29 DAY) AS m0_end_date,
+    ROUND(SUM(CASE WHEN transactionCluster = 'M0' THEN billingAmountAuthorizedImpact ELSE 0 END)/100.0, 0) AS m0_gtv
+  FROM \`p3-data-lake.consolidado.transactions\`
+  WHERE isValidTransaction=TRUE AND billingCurrency=986
+    AND DATE_ADD(DATE(realmFirstTransactionDate), INTERVAL 29 DAY)
+        BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+  GROUP BY 1
+  HAVING ROUND(SUM(CASE WHEN transactionCluster = 'M0' THEN billingAmountAuthorizedImpact ELSE 0 END)/100.0, 0) >= 50000
+),
+latest_cluster AS (
+  SELECT realmId, transactionCluster AS current_cluster
+  FROM (
+    SELECT realmId, transactionCluster,
+      ROW_NUMBER() OVER (PARTITION BY realmId ORDER BY effectiveAt DESC) AS rn
+    FROM \`p3-data-lake.consolidado.transactions\`
+    WHERE isValidTransaction=TRUE AND billingCurrency=986
+  ) WHERE rn = 1
+),
+hs_raw AS (
+  SELECT co.property_realm_id_,
+    ct.property_firstname AS contact_first, ct.property_lastname AS contact_last,
+    ct.property_email AS contact_email,
+    ROW_NUMBER() OVER (PARTITION BY co.property_realm_id_ ORDER BY ct.property_createdate DESC) AS rn
+  FROM \`p3-data-lake.hubspot.company\` co
+  LEFT JOIN \`p3-data-lake.hubspot.contact_company\` cc ON cc.company_id = co.id
+  LEFT JOIN \`p3-data-lake.hubspot.contact\` ct
+    ON ct.id = cc.contact_id AND NOT COALESCE(ct._fivetran_deleted, false)
+  WHERE NOT COALESCE(co._fivetran_deleted, false) AND co.property_realm_id_ IS NOT NULL
+),
+hs AS (SELECT * FROM hs_raw WHERE rn = 1)
+SELECT
+  g.realmId,
+  COALESCE(g.realm_name, g.realmId) AS clientName,
+  g.first_txn_date,
+  g.m0_end_date,
+  g.m0_gtv,
+  COALESCE(lc.current_cluster, 'M1') AS current_cluster,
+  DATE_DIFF(CURRENT_DATE(), g.m0_end_date, DAY) AS days_since_m0,
+  COALESCE(hs.contact_first, '') AS contact_first,
+  COALESCE(hs.contact_last, '') AS contact_last,
+  COALESCE(hs.contact_email, '') AS contact_email
+FROM m0_grads g
+LEFT JOIN latest_cluster lc ON lc.realmId = g.realmId
+LEFT JOIN hs ON hs.property_realm_id_ = g.realmId
+ORDER BY g.m0_gtv DESC`;
+
 // ── Aquisição helpers ──────────────────────────────────────
 let aqSelectedMonth = null; // 'YYYY-MM-01' or null = current
 let aqCanalFilter = 'all';
@@ -2138,6 +2224,14 @@ async function loadAquisicao(force) {
   } catch(e) {
     console.error('Inbound detail error:', e);
     document.getElementById('aq-inbound-detail').style.display = 'none';
+  }
+
+  try {
+    const handoverData = await bqQuery(AQ_HANDOVER_QUERY);
+    renderHandoverDetail(handoverData);
+  } catch(e) {
+    console.error('Handover detail error:', e);
+    document.getElementById('aq-handover-detail').style.display = 'none';
   }
 }
 
@@ -2302,6 +2396,47 @@ function renderInboundDetail(data) {
         return `<span style="font-weight:800;color:${color}">${d}d</span>`;
       })()}</td>
       <td style="padding:7px 14px;text-align:center">${hasTicket ? `<span style="color:#C2410C;font-weight:700;font-size:11px">🎫 ${tickets}</span>` : `<span style="color:var(--text-2)">—</span>`}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHandoverDetail(data) {
+  const detail = document.getElementById('aq-handover-detail');
+  if (!data || data.length === 0) { detail.style.display = 'none'; return; }
+  detail.style.display = 'block';
+
+  const totalGTV = data.reduce((s,r) => s + (parseFloat(r.m0_gtv)||0), 0);
+  document.getElementById('aq-ho-count').textContent = data.length;
+  document.getElementById('aq-ho-gtv').textContent = fmt(totalGTV);
+
+  const clusterColors = { M1:'#2563EB', M2:'#7C3AED', 'M3+':'#059669' };
+
+  const tbody = document.getElementById('aq-handover-table');
+  tbody.innerHTML = data.map((r, idx) => {
+    const gtv = parseFloat(r.m0_gtv)||0;
+    const contactName = [r.contact_first, r.contact_last].filter(Boolean).join(' ');
+    const cluster = r.current_cluster || 'M1';
+    const clusterColor = clusterColors[cluster] || '#6B7280';
+    const m0EndDate = r.m0_end_date ? new Date(r.m0_end_date + 'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '—';
+    const daysInM1 = parseInt(r.days_since_m0);
+    return `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px;font-weight:700">${idx+1}</td>
+      <td style="padding:7px 14px;text-align:left">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${(r.clientName||r.realmId).replace(/"/g,'&quot;')}">${r.clientName||r.realmId}</span>
+          <button onclick="openDrawer('${r.realmId}')" style="flex-shrink:0;font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:var(--p3-bg);color:var(--p3);font-weight:700;cursor:pointer;line-height:1.4">↗</button>
+        </div>
+      </td>
+      <td style="padding:7px 14px;text-align:left">
+        ${contactName ? `<div style="font-weight:600;font-size:11px">${contactName}</div>` : ''}
+        ${r.contact_email ? `<div style="color:var(--text-2);font-size:10px">${r.contact_email}</div>` : `<div style="color:var(--text-2);font-size:10px;font-style:italic">Sem contato</div>`}
+      </td>
+      <td style="padding:7px 14px;text-align:right;font-weight:800;color:var(--p3)">${fmt(gtv)}</td>
+      <td style="padding:7px 14px;text-align:center">
+        <span style="font-size:10px;font-weight:800;color:${clusterColor};background:${clusterColor}18;padding:2px 8px;border-radius:10px">${cluster}</span>
+      </td>
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px">${m0EndDate}</td>
+      <td style="padding:7px 14px;text-align:right;font-weight:700;color:${daysInM1<=2?'#B91C1C':daysInM1<=5?'#C2410C':'#6B7280'}">${isNaN(daysInM1)?'—':daysInM1+'d'}</td>
     </tr>`;
   }).join('');
 }
