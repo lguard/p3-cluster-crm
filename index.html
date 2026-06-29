@@ -1176,6 +1176,8 @@ function switchView(view) {
   if (view==='tickets'  && !ticketsLoaded)          loadTickets(false);
   if ((view==='ht'||view==='mt') && ticketsLoaded)  applyTicketBadges();
   if ((view==='ht'||view==='mt') && !ticketsLoaded) loadTickets(false);
+  // hide summary bar on Aquisição view
+  document.getElementById('metrics-row').style.display = view === 'aq' ? 'none' : '';
   if (view==='aq') {
     const allowed = AQUISICAO_ALLOWED.includes(state.user?.email);
     document.getElementById('aq-locked-msg').style.display = allowed ? 'none' : 'flex';
@@ -1853,8 +1855,8 @@ m0 AS (
   FROM won w
   JOIN \`p3-data-lake.consolidado.transactions\` t ON t.realmId = w.property_realm_id
   WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
-    AND DATE(t.effectiveAt) >= DATE_TRUNC(DATE(COALESCE(w.property_closedate, CURRENT_DATE())), MONTH)
-    AND DATE(t.effectiveAt) < DATE_ADD(DATE_TRUNC(DATE(COALESCE(w.property_closedate, CURRENT_DATE())), MONTH), INTERVAL 1 MONTH)
+    AND DATE(t.effectiveAt) >= DATE_TRUNC(DATE(COALESCE(w.property_closedate, CURRENT_TIMESTAMP())), MONTH)
+    AND DATE(t.effectiveAt) < DATE_ADD(DATE_TRUNC(DATE(COALESCE(w.property_closedate, CURRENT_TIMESTAMP())), MONTH), INTERVAL 1 MONTH)
   GROUP BY 1, 2, w.property_createdate
 )
 SELECT funil,
