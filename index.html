@@ -1933,7 +1933,7 @@ WITH m0_realms AS (
     ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS m0_gtv,
     ANY_VALUE(DATE(realmFirstTransactionDate)) AS first_txn_date,
     DATE_DIFF(
-      DATE_ADD(DATE_TRUNC(ANY_VALUE(DATE(realmFirstTransactionDate)), MONTH), INTERVAL 2 MONTH),
+      DATE_ADD(ANY_VALUE(DATE(realmFirstTransactionDate)), INTERVAL 29 DAY),
       CURRENT_DATE(),
       DAY
     ) AS days_remaining_m0
@@ -2185,6 +2185,8 @@ function renderInboundDetail(data) {
       <td style="padding:7px 14px;text-align:right">${(()=>{
         const d = parseInt(r.days_remaining_m0);
         if (isNaN(d)) return '<span style="color:var(--text-2)">—</span>';
+        if (d < 0) return '<span style="color:var(--text-2);font-size:10px">Passou p/ M1</span>';
+        if (d === 0) return '<span style="font-weight:800;color:#B91C1C">Último dia</span>';
         const color = d <= 3 ? '#B91C1C' : d <= 7 ? '#C2410C' : '#15803D';
         return `<span style="font-weight:800;color:${color}">${d}d</span>`;
       })()}</td>
