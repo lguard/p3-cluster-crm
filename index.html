@@ -492,6 +492,40 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 /* ─── VIEW PANELS ────────────────────────────────────────── */
 .view { display: none; }
 .view.active { display: block; }
+
+/* ─── AQUISIÇÃO ─────────────────────────────────────────── */
+.aq-locked { display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:12px;color:var(--text-2); }
+.aq-locked-icon { font-size:48px; }
+.aq-locked-title { font-size:18px;font-weight:800;color:var(--text); }
+.aq-locked-sub { font-size:13px;text-align:center;max-width:300px; }
+.aq-period { display:flex;align-items:center;gap:12px;padding:16px 28px 0; }
+.aq-period-label { font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px; }
+.aq-period-val { font-size:12px;font-weight:800;color:var(--p3);background:var(--p3-pale);padding:4px 12px;border-radius:20px; }
+.aq-funnels { display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:20px 28px 32px; }
+.aq-panel { background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm); }
+.aq-panel-header { padding:16px 20px 12px;border-bottom:1px solid var(--border); }
+.aq-panel-title { font-size:15px;font-weight:800;color:var(--text);margin-bottom:2px; }
+.aq-panel-sub { font-size:11px;color:var(--text-2);font-weight:500; }
+.aq-kpis { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border); }
+.aq-kpi { background:var(--white);padding:12px 14px; }
+.aq-kpi-label { font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text-2);margin-bottom:4px; }
+.aq-kpi-val { font-size:18px;font-weight:900;color:var(--text); }
+.aq-kpi-val.green { color:#15803D; }
+.aq-kpi-val.blue { color:var(--p3); }
+.aq-kpi-na { font-size:11px;color:var(--text-2);font-style:italic; }
+.aq-stages { padding:14px 0; }
+.aq-stage-row { display:flex;align-items:center;gap:10px;padding:5px 20px;transition:background .1s; }
+.aq-stage-row:hover { background:var(--p3-bg); }
+.aq-stage-name { font-size:11px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.aq-stage-n { font-size:12px;font-weight:800;color:var(--text);width:36px;text-align:right; }
+.aq-stage-pct { font-size:10px;font-weight:700;width:42px;text-align:right; }
+.aq-stage-bar-wrap { width:60px;height:6px;background:var(--border);border-radius:3px;overflow:hidden; }
+.aq-stage-bar { height:100%;border-radius:3px;background:var(--p3-light);transition:width .3s; }
+.aq-stage-won { color:#15803D; }
+.aq-stage-lost { color:#9CA3AF; }
+.aq-divider { border:none;border-top:1px solid var(--border);margin:8px 20px; }
+.aq-refresh { margin:0 20px 14px;font-size:11px;font-weight:700;color:var(--p3);background:none;border:none;cursor:pointer;padding:0; }
+.aq-refresh:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -571,6 +605,11 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <span class="nav-icon">🎫</span>
         <span class="nav-label">Tickets</span>
         <span class="nav-badge" id="nb-tk">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('aq')">
+        <span class="nav-icon">🚀</span>
+        <span class="nav-label">Aquisição</span>
+        <span class="nav-badge" id="nb-aq">—</span>
       </div>
     </div>
 
@@ -724,6 +763,25 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
           </table>
         </div>
       </div>
+
+      <!-- AQUISIÇÃO View -->
+      <div class="view" id="view-aq">
+        <div id="aq-locked-msg" class="aq-locked" style="display:none">
+          <div class="aq-locked-icon">🔒</div>
+          <div class="aq-locked-title">Acesso Restrito</div>
+          <div class="aq-locked-sub">Essa seção é exclusiva para Marketing e Diretoria. Solicite acesso a luiz.guardieiro@portao3.com.br.</div>
+        </div>
+        <div id="aq-content" style="display:none">
+          <div class="aq-period">
+            <span class="aq-period-label">Período</span>
+            <span class="aq-period-val" id="aq-period-label">—</span>
+            <button class="tasks-refresh" onclick="loadAquisicao(true)" style="margin-left:auto">↺ Atualizar</button>
+          </div>
+          <div class="aq-funnels" id="aq-funnels">
+            <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-2);font-size:13px">Clique em Atualizar para carregar os dados.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -832,6 +890,7 @@ const VIEW_META = {
   tasks:    { title: 'Tasks',      sub: 'Adormecidos primeiro · Em queda · Ordenados por GTV' },
   followup: { title: 'Follow up',  sub: 'Média 6m vs último mês · Maior delta = maior prioridade' },
   tickets:  { title: 'Tickets',    sub: 'Conversas Atlas abertas de clientes HT e MT · Mais antigos primeiro' },
+  aq:       { title: 'Aquisição',  sub: 'Funis Inbound · Outbound · Parceiros — MTD' },
 };
 
 // ══ AUTH ══════════════════════════════════════════════════
@@ -1117,6 +1176,12 @@ function switchView(view) {
   if (view==='tickets'  && !ticketsLoaded)          loadTickets(false);
   if ((view==='ht'||view==='mt') && ticketsLoaded)  applyTicketBadges();
   if ((view==='ht'||view==='mt') && !ticketsLoaded) loadTickets(false);
+  if (view==='aq') {
+    const allowed = AQUISICAO_ALLOWED.includes(state.user?.email);
+    document.getElementById('aq-locked-msg').style.display = allowed ? 'none' : 'flex';
+    document.getElementById('aq-content').style.display = allowed ? 'block' : 'none';
+    if (allowed && !aqLoaded) loadAquisicao(false);
+  }
 }
 
 // ══ DRAWER ════════════════════════════════════════════════
@@ -1702,6 +1767,234 @@ async function loadAtlasConvs(realmId) {
       </div>`;
     }).join('');
   } catch(e) { body.innerHTML = '<span style="color:var(--red);font-size:12px">Erro ao buscar.</span>'; }
+}
+
+// ══ AQUISIÇÃO ════════════════════════════════════════════
+const AQUISICAO_ALLOWED = ['luiz.guardieiro@portao3.com.br'];
+let aqLoaded = false;
+
+// Pipeline IDs (INT64 in BQ)
+const AQ_INBOUND  = [688402786, 9368679, 9456263];
+const AQ_OUTBOUND = [668588036, 669263690];
+const AQ_PARTNERS = [5547539, 760976898];
+const AQ_ALL      = [...AQ_INBOUND, ...AQ_OUTBOUND, ...AQ_PARTNERS];
+
+const AQ_STAGES_QUERY = `
+WITH deals AS (
+  SELECT
+    d.deal_id,
+    d.deal_pipeline_id,
+    CAST(d.deal_pipeline_stage_id AS STRING) AS stage_id_str,
+    d.property_realm_id,
+    d.property_createdate,
+    d.property_closedate,
+    d.property_hs_is_closed_won,
+    CASE
+      WHEN d.deal_pipeline_id IN (688402786,9368679,9456263) THEN 'Inbound'
+      WHEN d.deal_pipeline_id IN (668588036,669263690) THEN 'Outbound'
+      WHEN d.deal_pipeline_id IN (5547539,760976898) THEN 'Parceiros'
+    END AS funil
+  FROM \`p3-data-lake.hubspot.deal\` d
+  WHERE NOT COALESCE(d._fivetran_deleted, false) AND NOT COALESCE(d.is_deleted, false)
+    AND DATE(d.property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    AND d.deal_pipeline_id IN (688402786,9368679,9456263,668588036,669263690,5547539,760976898)
+)
+SELECT
+  d.funil,
+  d.deal_pipeline_id,
+  s.label AS stage,
+  s.display_order,
+  COUNT(*) AS n,
+  COUNTIF(d.property_hs_is_closed_won) AS n_won,
+  COUNT(*) OVER (PARTITION BY d.funil) AS total_funil
+FROM deals d
+JOIN \`p3-data-lake.hubspot.deal_pipeline_stage\` s
+  ON s.stage_id = d.stage_id_str AND NOT COALESCE(s._fivetran_deleted, false)
+GROUP BY 1,2,3,4,7
+ORDER BY d.funil, d.deal_pipeline_id, s.display_order`;
+
+const AQ_SUMMARY_QUERY = `
+SELECT
+  CASE
+    WHEN deal_pipeline_id IN (688402786,9368679,9456263) THEN 'Inbound'
+    WHEN deal_pipeline_id IN (668588036,669263690) THEN 'Outbound'
+    WHEN deal_pipeline_id IN (5547539,760976898) THEN 'Parceiros'
+  END AS funil,
+  COUNT(*) AS total,
+  COUNTIF(deal_pipeline_id = 688402786) AS formulario,
+  COUNTIF(property_hs_is_closed_won) AS ganhos,
+  COUNTIF(property_hs_is_closed_won AND property_realm_id IS NOT NULL) AS ganhos_com_realm,
+  ROUND(SAFE_DIVIDE(COUNTIF(property_hs_is_closed_won)*100.0, COUNT(*)),1) AS pct_ganho
+FROM \`p3-data-lake.hubspot.deal\`
+WHERE NOT COALESCE(_fivetran_deleted, false) AND NOT COALESCE(is_deleted, false)
+  AND DATE(property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+  AND deal_pipeline_id IN (688402786,9368679,9456263,668588036,669263690,5547539,760976898)
+GROUP BY 1`;
+
+const AQ_M0_QUERY = `
+WITH won AS (
+  SELECT deal_id, property_realm_id, property_createdate, property_closedate,
+    CASE
+      WHEN deal_pipeline_id IN (688402786,9368679,9456263) THEN 'Inbound'
+      WHEN deal_pipeline_id IN (668588036,669263690) THEN 'Outbound'
+      WHEN deal_pipeline_id IN (5547539,760976898) THEN 'Parceiros'
+    END AS funil
+  FROM \`p3-data-lake.hubspot.deal\`
+  WHERE NOT COALESCE(_fivetran_deleted, false) AND NOT COALESCE(is_deleted, false)
+    AND DATE(property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    AND property_hs_is_closed_won = TRUE
+    AND property_realm_id IS NOT NULL
+    AND deal_pipeline_id IN (688402786,9368679,9456263,668588036,669263690,5547539,760976898)
+),
+m0 AS (
+  SELECT w.deal_id, w.funil,
+    ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0, 0) AS m0_gtv,
+    DATE_DIFF(MIN(DATE(t.effectiveAt)), DATE(w.property_createdate), DAY) AS days_to_first
+  FROM won w
+  JOIN \`p3-data-lake.consolidado.transactions\` t ON t.realmId = w.property_realm_id
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
+    AND DATE(t.effectiveAt) >= DATE_TRUNC(DATE(COALESCE(w.property_closedate, CURRENT_DATE())), MONTH)
+    AND DATE(t.effectiveAt) < DATE_ADD(DATE_TRUNC(DATE(COALESCE(w.property_closedate, CURRENT_DATE())), MONTH), INTERVAL 1 MONTH)
+  GROUP BY 1, 2, w.property_createdate
+)
+SELECT funil,
+  ROUND(AVG(m0_gtv), 0) AS avg_m0_gtv,
+  ROUND(SUM(m0_gtv), 0) AS total_m0_gtv,
+  ROUND(AVG(CASE WHEN days_to_first >= 0 THEN days_to_first END), 1) AS avg_days_to_first,
+  COUNT(*) AS n_with_txn
+FROM m0 GROUP BY 1`;
+
+async function loadAquisicao(force) {
+  if (aqLoaded && !force) return;
+  const el = document.getElementById('aq-funnels');
+  el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-2);font-size:13px">Carregando dados de aquisição…</div>';
+
+  // Update period label
+  const now = new Date();
+  document.getElementById('aq-period-label').textContent =
+    `${now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} (MTD)`;
+
+  try {
+    const [stages, summary, m0] = await Promise.all([
+      bqQuery(AQ_STAGES_QUERY),
+      bqQuery(AQ_SUMMARY_QUERY),
+      bqQuery(AQ_M0_QUERY),
+    ]);
+    aqLoaded = true;
+
+    // Update sidebar badge with total ganhos
+    const totalGanhos = summary.reduce((s,r)=>s+(parseInt(r.ganhos)||0),0);
+    document.getElementById('nb-aq').textContent = totalGanhos;
+
+    renderAquisicao(stages, summary, m0);
+  } catch(e) {
+    el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);font-size:13px">Erro: ${e.message}</div>`;
+  }
+}
+
+function renderAquisicao(stages, summary, m0) {
+  const funnels = ['Inbound','Outbound','Parceiros'];
+  const icons = {Inbound:'📥',Outbound:'📤',Parceiros:'🤝'};
+  const summaryMap = {};
+  summary.forEach(r => summaryMap[r.funil] = r);
+  const m0Map = {};
+  m0.forEach(r => m0Map[r.funil] = r);
+
+  const el = document.getElementById('aq-funnels');
+  el.innerHTML = '';
+
+  funnels.forEach(funil => {
+    const s = summaryMap[funil] || {total:0,formulario:0,ganhos:0,pct_ganho:0};
+    const m = m0Map[funil] || {};
+    const isInbound = funil === 'Inbound';
+
+    // Group stages by pipeline
+    const funnelStages = stages.filter(r => r.funil === funil);
+
+    // Get pipeline IDs present
+    const pipelineIds = [...new Set(funnelStages.map(r => r.deal_pipeline_id))];
+
+    const panel = document.createElement('div');
+    panel.className = 'aq-panel';
+
+    // Conversion % per funnel
+    const pct = parseFloat(s.pct_ganho)||0;
+    const pctColor = pct >= 10 ? '#15803D' : pct >= 5 ? '#C2410C' : '#B91C1C';
+
+    panel.innerHTML = `
+      <div class="aq-panel-header">
+        <div class="aq-panel-title">${icons[funil]} ${funil}</div>
+        <div class="aq-panel-sub">${pipelineIds.length} pipeline${pipelineIds.length>1?'s':''} · ${s.total||0} leads no mês</div>
+      </div>
+      <div class="aq-kpis">
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">Leads Gerados</div>
+          <div class="aq-kpi-val blue">${s.total||0}</div>
+        </div>
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">${isInbound ? 'Formulário' : 'N/A'}</div>
+          ${isInbound
+            ? `<div class="aq-kpi-val">${s.formulario||0}</div>`
+            : `<div class="aq-kpi-na">Não aplicável</div>`}
+        </div>
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">Ganhos</div>
+          <div class="aq-kpi-val green">${s.ganhos||0}</div>
+        </div>
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">% Conversão</div>
+          <div class="aq-kpi-val" style="color:${pctColor}">${pct}%</div>
+        </div>
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">Dias 1º Gasto</div>
+          <div class="aq-kpi-val">${m.avg_days_to_first != null ? m.avg_days_to_first+'d' : '—'}</div>
+        </div>
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">M0 GTV médio</div>
+          <div class="aq-kpi-val" style="font-size:14px">${m.avg_m0_gtv ? fmt(m.avg_m0_gtv) : '—'}</div>
+        </div>
+      </div>
+      <div class="aq-stages" id="aq-stages-${funil.toLowerCase()}"></div>`;
+
+    el.appendChild(panel);
+
+    // Fill stages
+    const stagesEl = panel.querySelector('.aq-stages');
+
+    // Group by pipeline, show each pipeline's stages
+    const pipelineNames = {
+      688402786:'Ads / Leads', 9368679:'Smart Leads [Ads]', 9456263:'Closing Leads [Ads]',
+      668588036:'Smart Leads [NN]', 669263690:'Closing Leads [NN]',
+      5547539:'Ads / Partners', 760976898:'Partners [NN]'
+    };
+
+    pipelineIds.sort().forEach((pid, pi) => {
+      const pStages = funnelStages.filter(r => r.deal_pipeline_id == pid)
+        .sort((a,b) => (parseInt(a.display_order)||0)-(parseInt(b.display_order)||0));
+      const pTotal = pStages.reduce((s,r) => s+(parseInt(r.n)||0), 0);
+
+      if (pi > 0) stagesEl.insertAdjacentHTML('beforeend','<hr class="aq-divider">');
+      stagesEl.insertAdjacentHTML('beforeend',
+        `<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text-2);padding:4px 20px 6px">${pipelineNames[pid]||pid} · ${pTotal} leads</div>`);
+
+      pStages.forEach((stage, si) => {
+        const n = parseInt(stage.n)||0;
+        const prevN = si > 0 ? (parseInt(pStages[si-1]?.n)||0) : pTotal;
+        const pct = prevN > 0 ? Math.round((n/pTotal)*100) : 0;
+        const isWon = (stage.stage||'').toLowerCase().includes('ganho') || stage.stage === 'Parceria Iniciada [won]' || stage.stage === 'Parceria Iniciada';
+        const isLost = (stage.stage||'').toLowerCase().includes('perdido') || stage.stage === 'Parceria Descontinuada' || stage.stage === 'Parceria Inativa';
+        const barW = Math.round((n/Math.max(pTotal,1))*100);
+        const barColor = isWon ? '#16A34A' : isLost ? '#D1D5DB' : 'var(--p3-light)';
+        stagesEl.insertAdjacentHTML('beforeend',`
+          <div class="aq-stage-row">
+            <div class="aq-stage-name ${isWon?'aq-stage-won':isLost?'aq-stage-lost':''}">${stage.stage}</div>
+            <div class="aq-stage-n">${n}</div>
+            <div class="aq-stage-pct" style="color:${isWon?'#15803D':isLost?'#9CA3AF':'var(--text-2)'}">${pct}%</div>
+            <div class="aq-stage-bar-wrap"><div class="aq-stage-bar" style="width:${barW}%;background:${barColor}"></div></div>
+          </div>`);
+      });
+    });
+  });
 }
 </script>
 </body>
