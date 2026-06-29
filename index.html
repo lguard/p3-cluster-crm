@@ -1920,7 +1920,7 @@ const AQ_INBOUND_DETAIL_QUERY = `
 WITH won_inbound AS (
   SELECT d.deal_id, d.property_realm_id,
     COALESCE(d.property_closedate, CURRENT_TIMESTAMP()) AS close_ts,
-    SAFE_CAST(d.property_amount AS FLOAT64) AS expected_amount
+    d.property_gtv_mensal_estimado AS expected_amount
   FROM \`p3-data-lake.hubspot.deal\` d
   WHERE NOT COALESCE(d._fivetran_deleted, false) AND NOT COALESCE(d.is_deleted, false)
     AND DATE(d.property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
