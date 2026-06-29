@@ -387,6 +387,37 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .tasks-done-hdr { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; padding: 14px 0 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 .tasks-done-hdr:hover { color: var(--text); }
 
+/* ─── SUPPORT BADGES (Atenção view) ─────────────────────── */
+.suporte-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; font-size:10px; font-weight:700; white-space:nowrap; }
+.suporte-sim   { background:#FEE2E2; color:#B91C1C; }
+.suporte-nao   { background:#F3F4F6; color:#6B7280; }
+.suporte-hs    { background:#EDE9FE; color:#5B21B6; }
+.suporte-load  { background:#F3F4F6; color:#9CA3AF; }
+
+/* ─── TICKETS VIEW ────────────────────────────────────────── */
+.tk-channel { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:10px; font-weight:700; }
+.tk-ch-chat { background:#DBEAFE; color:#1E40AF; }
+.tk-ch-whatsapp { background:#DCFCE7; color:#15803D; }
+.tk-age { font-size:11px; font-weight:700; }
+.tk-age-urgent { color:#B91C1C; }
+.tk-age-warn   { color:#C2410C; }
+.tk-age-ok     { color:#15803D; }
+.tk-link { font-size:11px; color:var(--p3); font-weight:600; text-decoration:none; }
+.tk-link:hover { text-decoration:underline; }
+
+/* ─── HUBSPOT DRAWER SECTION ─────────────────────────────── */
+.hs-section { padding: 16px 20px; border-top: 1px solid var(--border); }
+.hs-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.hs-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.hs-label { font-size: 11px; color: var(--text-2); font-weight: 500; }
+.hs-value { font-size: 12px; font-weight: 700; color: var(--text); }
+.hs-link { font-size: 11px; font-weight: 700; color: var(--p3); text-decoration: none; padding: 5px 12px; border-radius: 8px; background: var(--p3-pale); display: inline-block; }
+.hs-link:hover { background: var(--p3); color: white; }
+.hs-conv-row { font-size: 11px; padding: 6px 10px; border-radius: 8px; background: var(--p3-bg); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.hs-conv-num { font-weight: 800; color: var(--p3); }
+.hs-conv-ch  { font-size: 10px; font-weight: 700; color: var(--text-2); }
+.hs-conv-age { font-size: 10px; color: var(--red); font-weight: 700; margin-left: auto; }
+
 /* ─── KANBAN (dentro de Tasks) ───────────────────────────── */
 .kanban-divider { margin: 8px 28px 0; border: none; border-top: 2px solid var(--border); }
 .kanban-sub-header { display: flex; align-items: center; gap: 12px; padding: 20px 28px 14px; }
@@ -536,6 +567,11 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <span class="nav-label">Follow up</span>
         <span class="nav-badge" id="nb-fu">—</span>
       </div>
+      <div class="nav-item" onclick="switchView('tickets')">
+        <span class="nav-icon">🎫</span>
+        <span class="nav-label">Tickets</span>
+        <span class="nav-badge" id="nb-tk">—</span>
+      </div>
     </div>
 
     <div class="sidebar-spacer"></div>
@@ -607,7 +643,11 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
       <!-- AT View -->
       <div class="view" id="view-at">
         <div class="view-header"><span class="view-badge at">⚠ Atenção</span><span class="view-rule">Degradação de cluster ou adormecimento nos últimos 30 dias</span></div>
-        <div class="table-wrap"><table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 4px">
+          <button class="tasks-refresh" onclick="loadAtlasBadges(true)">↺ Carregar badges de suporte</button>
+          <span style="font-size:11px;color:var(--text-2)" id="at-badges-status"></span>
+        </div>
+        <div class="table-wrap"><table class="client-table" id="table-at"><thead><tr><th>Cliente</th><th>Telefone</th><th>Situação</th><th>Suporte</th><th>Média H1</th><th>Média H2</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
       </div>
 
       <!-- TASKS View (lista de prioridade) -->
@@ -669,6 +709,21 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
           </div>
         </div>
       </div>
+
+      <!-- TICKETS View (Atlas open conversations para HT/MT) -->
+      <div class="view" id="view-tickets">
+        <div class="view-header"><span class="view-badge" style="background:#EDE9FE;color:#5B21B6">🎫 Tickets Abertos</span><span class="view-rule">Conversas Atlas abertas de clientes High Touch e Mid Touch · Mais antigos primeiro</span></div>
+        <div class="tasks-top">
+          <div class="tasks-info" id="tk-info">High Touch primeiro · Ordenado pelo ticket mais antigo</div>
+          <button class="tasks-refresh" onclick="loadTickets(true)">↺ Atualizar</button>
+        </div>
+        <div class="table-wrap">
+          <table class="client-table" id="table-tickets">
+            <thead><tr><th>Cliente</th><th>Cluster</th><th>Canal</th><th>#</th><th>Aberto há</th><th>Agente</th><th>Média/mês</th><th>Ver</th></tr></thead>
+            <tbody><tr><td colspan="8" style="text-align:center;color:var(--text-2);padding:32px;font-size:12px">Clique em "Atualizar" para carregar.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -709,6 +764,14 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <label class="toggle"><input type="checkbox" id="d-contacted-toggle"><span class="toggle-slider"></span></label>
         <span class="toggle-label">Contactado este mês</span>
       </div>
+    </div>
+    <div id="d-hs-section" class="hs-section" style="display:none">
+      <div class="hs-section-title">🟠 HubSpot</div>
+      <div id="d-hs-body" style="font-size:12px;color:var(--text-2)">Carregando…</div>
+    </div>
+    <div id="d-atlas-section" class="hs-section" style="display:none">
+      <div class="hs-section-title">💬 Conversas abertas (Atlas)</div>
+      <div id="d-atlas-body" style="font-size:12px;color:var(--text-2)">Nenhuma.</div>
     </div>
     <div class="history-section">
       <div class="history-title">Histórico de contatos</div>
@@ -768,6 +831,7 @@ const VIEW_META = {
   at:       { title: 'Atenção',    sub: 'Degradação de cluster ou adormecimento nos últimos 30 dias' },
   tasks:    { title: 'Tasks',      sub: 'Adormecidos primeiro · Em queda · Ordenados por GTV' },
   followup: { title: 'Follow up',  sub: 'Média 6m vs último mês · Maior delta = maior prioridade' },
+  tickets:  { title: 'Tickets',    sub: 'Conversas Atlas abertas de clientes HT e MT · Mais antigos primeiro' },
 };
 
 // ══ AUTH ══════════════════════════════════════════════════
@@ -1008,10 +1072,12 @@ function renderTableAt(key, rows) {
     else if (motivo.includes('→ Mid')) cls='mp-ht-mt';
     else if (motivo.includes('High Touch → Low')) cls='mp-ht-lt';
     const tr = document.createElement('tr');
+    tr.dataset.realmId = r.realmId;
     tr.innerHTML = `
       <td><div class="client-name">${r.realmName}</div><div class="client-id">${r.realmId.slice(0,8)}…</div></td>
       <td>${ph ? `<a class="client-phone" href="tel:${r.phone}">${ph}</a>` : '<span style="color:var(--text-2);font-size:12px">—</span>'}</td>
       <td><span class="motivo-pill ${cls}">${motivo}</span></td>
+      <td><span class="suporte-badge suporte-load" id="sb-${r.realmId.slice(0,8)}">—</span></td>
       <td style="font-weight:700">${r.avg_h1?fmt(r.avg_h1):'—'}</td>
       <td style="font-weight:700;color:${parseFloat(r.avg_h2)>0?'var(--text)':'var(--red)'}">${parseFloat(r.avg_h2)>0?fmt(r.avg_h2):'—'}</td>
       <td><div class="contacted-toggle ${isC?'on':''}" id="tg-${r.realmId.slice(0,8)}" onclick="quickToggle('${r.realmId}',this)"></div></td>
@@ -1029,10 +1095,11 @@ function filterCurrent(q) {
 
 function switchView(view) {
   state.currentView = view;
-  // sidebar nav
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const navMap = {ht:0,mt:1,lt:2,at:3,kanban:4};
-  document.querySelectorAll('.nav-item')[navMap[view]]?.classList.add('active');
+  // sidebar nav — match by onclick
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('active');
+    if (el.getAttribute('onclick')?.includes(`'${view}'`)) el.classList.add('active');
+  });
   // metric cards
   const cardMap = {ht:'mc-ht',mt:'mc-mt',lt:'mc-lt',at:'mc-at',tasks:'mc-tasks',followup:'mc-followup'};
   document.querySelectorAll('.metric').forEach(el => el.classList.remove('active'));
@@ -1041,11 +1108,12 @@ function switchView(view) {
   // views
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
-  document.getElementById('topbar-title').textContent = VIEW_META[view].title;
-  document.getElementById('topbar-sub').textContent = VIEW_META[view].sub;
+  document.getElementById('topbar-title').textContent = VIEW_META[view]?.title || view;
+  document.getElementById('topbar-sub').textContent = VIEW_META[view]?.sub || '';
   document.getElementById('global-search').value = '';
   if (view==='tasks'    && !tasksClients.length)    loadTasks(false);
   if (view==='followup' && !followupClients.length) loadFollowup(false);
+  if (view==='tickets'  && !ticketsLoaded)          loadTickets(false);
 }
 
 // ══ DRAWER ════════════════════════════════════════════════
@@ -1070,7 +1138,14 @@ function openDrawer(realmId) {
   tag.className = 'view-badge '+(cls||'mt'); tag.textContent = c.cluster;
   const mot = document.getElementById('d-motivo');
   mot.textContent = c.motivo||''; mot.style.display = c.motivo?'block':'none';
+  // Reset HubSpot + Atlas sections
+  document.getElementById('d-hs-section').style.display = 'none';
+  document.getElementById('d-atlas-section').style.display = 'none';
+  document.getElementById('d-hs-body').textContent = 'Carregando…';
+  document.getElementById('d-atlas-body').innerHTML = '<span style="color:var(--text-2)">Nenhuma.</span>';
   loadHistory(realmId);
+  loadHubspotInfo(realmId);
+  loadAtlasConvs(realmId);
   document.getElementById('drawer-overlay').style.display = 'block';
   setTimeout(()=>document.getElementById('drawer').classList.add('open'),10);
 }
@@ -1376,6 +1451,215 @@ let toastTimer;
 function showToast(msg,type='') {
   const el=document.getElementById('toast'); el.textContent=msg; el.className='show '+(type||'');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.className='',3500);
+}
+
+// ══ TICKETS (Atlas open conversations for HT/MT) ══════════
+let ticketsLoaded = false;
+
+const TICKETS_QUERY = `
+WITH params AS (
+  SELECT
+    DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH), MONTH) AS window_start,
+    DATE_TRUNC(CURRENT_DATE(), MONTH) AS window_end
+),
+excluded AS (
+  SELECT DISTINCT realmId FROM \`p3-data-lake.consolidado.accounts\`
+  WHERE status IN ('REPROVED','CLOSED')
+),
+monthly AS (
+  SELECT t.realmId, ANY_VALUE(t.realmName) AS realmName,
+    FORMAT_DATE('%Y-%m', DATE(t.effectiveAt)) AS month,
+    ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0, 0) AS gtv
+  FROM \`p3-data-lake.consolidado.transactions\` t, params p
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
+    AND DATE(t.effectiveAt) >= p.window_start AND DATE(t.effectiveAt) < p.window_end
+    AND t.realmId NOT IN (SELECT realmId FROM excluded)
+  GROUP BY t.realmId, month
+),
+agg AS (
+  SELECT realmId, ANY_VALUE(realmName) AS realmName,
+    ROUND(AVG(gtv), 0) AS avg_monthly_gtv,
+    MIN(gtv) AS min_gtv
+  FROM monthly GROUP BY realmId
+),
+ht_mt AS (
+  SELECT realmId, realmName, avg_monthly_gtv,
+    CASE WHEN min_gtv >= 100000 THEN 'High Touch' ELSE 'Mid Touch' END AS cluster
+  FROM agg WHERE min_gtv >= 50000
+),
+latest_conv AS (
+  SELECT
+    JSON_EXTRACT_SCALAR(data, '$.id') AS conv_id,
+    JSON_EXTRACT_SCALAR(data, '$.customer.account.customFields.realmId') AS realmId,
+    JSON_EXTRACT_SCALAR(data, '$.status') AS status,
+    CAST(JSON_EXTRACT_SCALAR(data, '$.number') AS INT64) AS conv_number,
+    JSON_EXTRACT_SCALAR(data, '$.startedChannel') AS channel,
+    TIMESTAMP_SECONDS(CAST(COALESCE(JSON_EXTRACT_SCALAR(data, '$.createdAt'),'0') AS INT64)) AS created_at,
+    JSON_EXTRACT_SCALAR(data, '$.assignedAgent.firstName') AS agent_first,
+    JSON_EXTRACT_SCALAR(data, '$.assignedAgent.lastName') AS agent_last,
+    ROW_NUMBER() OVER (
+      PARTITION BY JSON_EXTRACT_SCALAR(data, '$.id')
+      ORDER BY _created DESC
+    ) AS rn
+  FROM \`p3-data-lake.atlas.conversations\`
+  WHERE JSON_EXTRACT_SCALAR(data, '$.customer.account.customFields.realmId') IS NOT NULL
+)
+SELECT
+  c.conv_id, c.conv_number, c.channel, c.created_at,
+  c.agent_first, c.agent_last,
+  ht.realmId, ht.realmName, ht.cluster, ht.avg_monthly_gtv
+FROM latest_conv c
+JOIN ht_mt ht ON ht.realmId = c.realmId
+WHERE c.rn = 1 AND c.status = 'OPEN'
+ORDER BY
+  CASE ht.cluster WHEN 'High Touch' THEN 1 ELSE 2 END,
+  c.created_at ASC`;
+
+async function loadTickets(force) {
+  if (ticketsLoaded && !force) return;
+  const tbody = document.querySelector('#table-tickets tbody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-2);padding:32px;font-size:12px">Carregando tickets…</td></tr>';
+  try {
+    const rows = await bqQuery(TICKETS_QUERY);
+    ticketsLoaded = true;
+    document.getElementById('nb-tk').textContent = rows.length;
+    renderTickets(rows);
+  } catch(e) { showToast('Erro Tickets: '+e.message,'error'); }
+}
+
+function renderTickets(rows) {
+  const tbody = document.querySelector('#table-tickets tbody');
+  tbody.innerHTML = '';
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-2);padding:32px;font-size:12px">🎉 Nenhum ticket aberto de clientes HT/MT.</td></tr>';
+    return;
+  }
+  rows.forEach(r => {
+    const created = new Date(r.created_at);
+    const ageMs = Date.now() - created.getTime();
+    const ageH = Math.floor(ageMs/3600000);
+    const ageTxt = ageH < 24 ? `${ageH}h` : `${Math.floor(ageH/24)}d`;
+    const ageCls = ageH > 72 ? 'tk-age-urgent' : ageH > 24 ? 'tk-age-warn' : 'tk-age-ok';
+    const ch = (r.channel||'').toUpperCase();
+    const chCls = ch==='WHATSAPP' ? 'tk-ch-whatsapp' : 'tk-ch-chat';
+    const chIcon = ch==='WHATSAPP' ? '💬' : '🖥️';
+    const clsBadge = r.cluster==='High Touch' ? 'ht' : 'mt';
+    const agent = [r.agent_first, r.agent_last].filter(Boolean).join(' ') || '—';
+    const atlasUrl = `https://app.atlas.so/conversations/${r.conv_id}`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="client-name">${r.realmName}</div><div class="client-id">${r.realmId?.slice(0,8)}…</div></td>
+      <td><span class="view-badge ${clsBadge}" style="font-size:10px">${r.cluster}</span></td>
+      <td><span class="tk-channel ${chCls}">${chIcon} ${ch}</span></td>
+      <td style="font-size:12px;font-weight:700;color:var(--text-2)">#${r.conv_number||'—'}</td>
+      <td><span class="tk-age ${ageCls}">${ageTxt}</span></td>
+      <td style="font-size:11px;font-weight:600">${agent}</td>
+      <td><span class="gtv-pill">${fmt(r.avg_monthly_gtv)}</span></td>
+      <td><a class="tk-link" href="${atlasUrl}" target="_blank">Abrir →</a></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ══ ATLAS BADGES (Atenção view: suporte vs churn silencioso) ══
+const ATLAS_BADGES_QUERY = `
+WITH at_realms AS (
+  SELECT DISTINCT
+    JSON_EXTRACT_SCALAR(data, '$.customer.account.customFields.realmId') AS realmId,
+    MAX(TIMESTAMP_SECONDS(CAST(COALESCE(JSON_EXTRACT_SCALAR(data, '$.createdAt'),'0') AS INT64))) AS last_conv
+  FROM \`p3-data-lake.atlas.conversations\`
+  WHERE JSON_EXTRACT_SCALAR(data, '$.customer.account.customFields.realmId') IS NOT NULL
+  GROUP BY 1
+)
+SELECT realmId, last_conv FROM at_realms`;
+
+let atlasBadgeMap = {};
+
+async function loadAtlasBadges(force) {
+  const statusEl = document.getElementById('at-badges-status');
+  if (Object.keys(atlasBadgeMap).length && !force) return;
+  if (statusEl) statusEl.textContent = 'Carregando…';
+  try {
+    const rows = await bqQuery(ATLAS_BADGES_QUERY);
+    atlasBadgeMap = {};
+    rows.forEach(r => { if (r.realmId) atlasBadgeMap[r.realmId] = r.last_conv; });
+    // Update existing badges in AT table
+    const atClients = state.clients.filter(c=>c.cluster==='Atenção');
+    atClients.forEach(r => {
+      const el = document.getElementById('sb-'+r.realmId.slice(0,8));
+      if (!el) return;
+      if (atlasBadgeMap[r.realmId]) {
+        el.className = 'suporte-badge suporte-sim';
+        el.textContent = '🆘 Tentou suporte';
+      } else {
+        el.className = 'suporte-badge suporte-nao';
+        el.textContent = '👻 Churn silencioso';
+      }
+    });
+    if (statusEl) statusEl.textContent = `${rows.length} registros carregados`;
+    showToast('Badges de suporte atualizados!','success');
+  } catch(e) { showToast('Erro badges: '+e.message,'error'); if(statusEl) statusEl.textContent = 'Erro.'; }
+}
+
+// ══ HUBSPOT INFO (drawer) ═════════════════════════════════
+const HS_PORTAL_ID = '8003622';
+
+async function loadHubspotInfo(realmId) {
+  const section = document.getElementById('d-hs-section');
+  const body = document.getElementById('d-hs-body');
+  section.style.display = 'block';
+  try {
+    const rows = await bqQuery(`
+      SELECT id, property_principal_contato_nome, property_principal_contato_email,
+             property_principal_contato_telefone, property_name, property_cnpj
+      FROM \`p3-data-lake.hubspot.company\`
+      WHERE property_realm_id = '${realmId}' AND NOT COALESCE(_fivetran_deleted, false)
+      LIMIT 1`);
+    if (!rows.length) { body.innerHTML = '<span style="color:var(--text-2);font-size:12px">Não encontrado no HubSpot.</span>'; return; }
+    const h = rows[0];
+    const hsUrl = `https://app.hubspot.com/contacts/${HS_PORTAL_ID}/company/${h.id}`;
+    body.innerHTML = `
+      <div class="hs-row"><span class="hs-label">Contato principal</span><span class="hs-value">${h.property_principal_contato_nome||'—'}</span></div>
+      <div class="hs-row"><span class="hs-label">E-mail</span><span class="hs-value" style="font-size:11px">${h.property_principal_contato_email||'—'}</span></div>
+      <div class="hs-row"><span class="hs-label">Telefone HubSpot</span><span class="hs-value">${h.property_principal_contato_telefone||'—'}</span></div>
+      <div style="margin-top:10px"><a class="hs-link" href="${hsUrl}" target="_blank">Abrir no HubSpot →</a></div>`;
+  } catch(e) { body.innerHTML = '<span style="color:var(--red);font-size:12px">Erro ao buscar HubSpot.</span>'; }
+}
+
+// ══ ATLAS CONVERSATIONS (drawer) ══════════════════════════
+async function loadAtlasConvs(realmId) {
+  const section = document.getElementById('d-atlas-section');
+  const body = document.getElementById('d-atlas-body');
+  section.style.display = 'block';
+  try {
+    const rows = await bqQuery(`
+      WITH lc AS (
+        SELECT
+          JSON_EXTRACT_SCALAR(data, '$.id') AS conv_id,
+          JSON_EXTRACT_SCALAR(data, '$.status') AS status,
+          CAST(JSON_EXTRACT_SCALAR(data, '$.number') AS INT64) AS num,
+          JSON_EXTRACT_SCALAR(data, '$.startedChannel') AS channel,
+          TIMESTAMP_SECONDS(CAST(COALESCE(JSON_EXTRACT_SCALAR(data, '$.createdAt'),'0') AS INT64)) AS created_at,
+          JSON_EXTRACT_SCALAR(data, '$.assignedAgent.firstName') AS agent_first,
+          ROW_NUMBER() OVER (PARTITION BY JSON_EXTRACT_SCALAR(data, '$.id') ORDER BY _created DESC) AS rn
+        FROM \`p3-data-lake.atlas.conversations\`
+        WHERE JSON_EXTRACT_SCALAR(data, '$.customer.account.customFields.realmId') = '${realmId}'
+      )
+      SELECT * FROM lc WHERE rn=1 ORDER BY created_at DESC LIMIT 10`);
+    if (!rows.length) { body.innerHTML = '<span style="color:var(--text-2);font-size:12px">Nenhuma conversa encontrada.</span>'; return; }
+    body.innerHTML = rows.map(r => {
+      const open = r.status === 'OPEN';
+      const ageH = Math.floor((Date.now() - new Date(r.created_at).getTime())/3600000);
+      const ageTxt = ageH < 24 ? `${ageH}h` : `${Math.floor(ageH/24)}d`;
+      const url = `https://app.atlas.so/conversations/${r.conv_id}`;
+      return `<div class="hs-conv-row">
+        <span class="hs-conv-num">#${r.num||'—'}</span>
+        <span class="hs-conv-ch">${r.channel||'CHAT'}</span>
+        <span style="font-size:10px;font-weight:700;color:${open?'#15803D':'#6B7280'}">${open?'●ABERTO':'○FECHADO'}</span>
+        ${open?`<span class="hs-conv-age">${ageTxt}</span>`:''}
+        <a class="tk-link" href="${url}" target="_blank" style="margin-left:auto">Ver →</a>
+      </div>`;
+    }).join('');
+  } catch(e) { body.innerHTML = '<span style="color:var(--red);font-size:12px">Erro ao buscar.</span>'; }
 }
 </script>
 </body>
