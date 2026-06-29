@@ -2167,25 +2167,23 @@ function renderAquisicao(stages, summary, m0) {
     panel.className = 'aq-panel';
     panel.dataset.funil = funil;
 
-    // Conversion % per funnel
-    const pct = parseFloat(s.pct_ganho)||0;
-    const pctColor = pct >= 10 ? '#15803D' : pct >= 5 ? '#C2410C' : '#B91C1C';
+    // Conversion % — Inbound uses formulário as denominator, others use total
+    const base = isInbound ? (parseInt(s.formulario)||0) : (parseInt(s.total)||0);
+    const pct = base > 0 ? ((parseInt(s.ganhos)||0) / base * 100).toFixed(1) : '0.0';
+    const pctNum = parseFloat(pct);
+    const pctColor = pctNum >= 10 ? '#15803D' : pctNum >= 5 ? '#C2410C' : '#B91C1C';
+    const leadsLabel = isInbound ? 'Formulário' : 'Leads Gerados';
+    const leadsVal = isInbound ? (s.formulario||0) : (s.total||0);
 
     panel.innerHTML = `
       <div class="aq-panel-header">
         <div class="aq-panel-title">${icons[funil]} ${funil}</div>
-        <div class="aq-panel-sub">${pipelineIds.length} pipeline${pipelineIds.length>1?'s':''} · ${s.total||0} leads no mês</div>
+        <div class="aq-panel-sub">${pipelineIds.length} pipeline${pipelineIds.length>1?'s':''} · ${leadsVal} leads no mês</div>
       </div>
       <div class="aq-kpis">
         <div class="aq-kpi">
-          <div class="aq-kpi-label">Leads Gerados</div>
-          <div class="aq-kpi-val blue">${s.total||0}</div>
-        </div>
-        <div class="aq-kpi">
-          <div class="aq-kpi-label">${isInbound ? 'Formulário' : 'N/A'}</div>
-          ${isInbound
-            ? `<div class="aq-kpi-val">${s.formulario||0}</div>`
-            : `<div class="aq-kpi-na">Não aplicável</div>`}
+          <div class="aq-kpi-label">${leadsLabel}</div>
+          <div class="aq-kpi-val blue">${leadsVal}</div>
         </div>
         <div class="aq-kpi">
           <div class="aq-kpi-label">Ganhos</div>
