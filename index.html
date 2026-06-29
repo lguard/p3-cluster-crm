@@ -625,13 +625,13 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
       <!-- HT View -->
       <div class="view active" id="view-ht">
         <div class="view-header"><span class="view-badge ht">● High Touch</span><span class="view-rule">GTV ≥ R$100k em todos os 6 meses · Excluindo bloqueados Swap</span></div>
-        <div class="table-wrap"><table class="client-table" id="table-ht"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="table-wrap"><table class="client-table" id="table-ht"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>🎫 Tickets</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
       </div>
 
       <!-- MT View -->
       <div class="view" id="view-mt">
         <div class="view-header"><span class="view-badge mt">● Mid Touch</span><span class="view-rule">GTV entre R$50k e R$100k em todos os meses</span></div>
-        <div class="table-wrap"><table class="client-table" id="table-mt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="table-wrap"><table class="client-table" id="table-mt"><thead><tr><th>Cliente</th><th>Telefone</th><th>Média/mês</th><th>Total 6m</th><th>Meses</th><th>🎫 Tickets</th><th>Contactado</th><th></th></tr></thead><tbody></tbody></table></div>
       </div>
 
       <!-- LT View -->
@@ -1041,7 +1041,7 @@ function renderAll() {
 function renderTable(key, rows) {
   const tbody = document.querySelector(`#table-${key} tbody`);
   tbody.innerHTML = '';
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-2);padding:32px">Nenhum cliente neste cluster.</td></tr>'; return; }
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-2);padding:32px">Nenhum cliente neste cluster.</td></tr>'; return; }
   rows.forEach(r => {
     const isC = state.contactedThisMonth.has(r.realmId);
     const ph = fmtPhone(r.phone);
@@ -1052,6 +1052,7 @@ function renderTable(key, rows) {
       <td><span class="gtv-pill">${fmt(r.avg_monthly_gtv)}</span></td>
       <td style="font-size:14px;font-weight:800;color:var(--p3-dark)">${fmt(r.total_gtv_6m)}</td>
       <td><span class="months-badge">${r.months_active}/${r.total_months}</span></td>
+      <td><span class="suporte-badge suporte-load" id="tk-${r.realmId.slice(0,8)}">—</span></td>
       <td><div class="contacted-toggle ${isC?'on':''}" id="tg-${r.realmId.slice(0,8)}" onclick="quickToggle('${r.realmId}',this)" title="${isC?'Contactado':'Marcar'}"></div></td>
       <td><button class="btn-action" onclick="openDrawer('${r.realmId}')">Registrar →</button></td>`;
     tbody.appendChild(tr);
@@ -1114,6 +1115,8 @@ function switchView(view) {
   if (view==='tasks'    && !tasksClients.length)    loadTasks(false);
   if (view==='followup' && !followupClients.length) loadFollowup(false);
   if (view==='tickets'  && !ticketsLoaded)          loadTickets(false);
+  if ((view==='ht'||view==='mt') && ticketsLoaded)  applyTicketBadges();
+  if ((view==='ht'||view==='mt') && !ticketsLoaded) loadTickets(false);
 }
 
 // ══ DRAWER ════════════════════════════════════════════════
@@ -1454,7 +1457,7 @@ function showToast(msg,type='') {
 }
 
 // ══ TICKETS (Atlas open conversations for HT/MT) ══════════
-let ticketsLoaded = false;
+let ticketsLoaded = false, ticketsData = [];
 
 const TICKETS_QUERY = `
 WITH params AS (
@@ -1522,9 +1525,27 @@ async function loadTickets(force) {
   try {
     const rows = await bqQuery(TICKETS_QUERY);
     ticketsLoaded = true;
+    ticketsData = rows;
     document.getElementById('nb-tk').textContent = rows.length;
     renderTickets(rows);
+    applyTicketBadges();
   } catch(e) { showToast('Erro Tickets: '+e.message,'error'); }
+}
+
+function applyTicketBadges() {
+  // Count open tickets per realmId
+  const counts = {};
+  ticketsData.forEach(r => { counts[r.realmId] = (counts[r.realmId]||0) + 1; });
+  // Update HT and MT table rows
+  const htmt = state.clients.filter(c => c.cluster === 'High Touch' || c.cluster === 'Mid Touch');
+  htmt.forEach(r => {
+    const el = document.getElementById('tk-'+r.realmId.slice(0,8));
+    if (!el) return;
+    const n = counts[r.realmId] || 0;
+    if (n === 0) { el.className = 'suporte-badge suporte-nao'; el.textContent = '—'; }
+    else if (n === 1) { el.className = 'suporte-badge suporte-sim'; el.textContent = `🎫 1 aberto`; }
+    else { el.className = 'suporte-badge suporte-sim'; el.textContent = `🎫 ${n} abertos`; }
+  });
 }
 
 function renderTickets(rows) {
