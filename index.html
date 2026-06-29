@@ -1933,7 +1933,7 @@ WITH m0_realms AS (
     ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS m0_gtv,
     ANY_VALUE(DATE(realmFirstTransactionDate)) AS first_txn_date,
     DATE_DIFF(
-      DATE_ADD(DATE_TRUNC(ANY_VALUE(DATE(realmFirstTransactionDate)), MONTH), INTERVAL 1 MONTH),
+      DATE_ADD(DATE_TRUNC(ANY_VALUE(DATE(realmFirstTransactionDate)), MONTH), INTERVAL 2 MONTH),
       CURRENT_DATE(),
       DAY
     ) AS days_remaining_m0
