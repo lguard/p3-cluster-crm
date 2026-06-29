@@ -813,19 +813,21 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
                 <div class="aq-detail-kpi-val" id="aq-expected-count">—</div>
               </div>
             </div>
-            <div class="aq-detail-tables">
-              <div class="aq-detail-table-wrap">
-                <div class="aq-detail-table-title">🏆 Top 10 GTV M0</div>
-                <table class="aq-detail-table">
-                  <thead><tr><th>Cliente</th><th>Expected</th><th>M0 GTV</th></tr></thead>
-                  <tbody id="aq-top10-table"></tbody>
-                </table>
-              </div>
-              <div class="aq-detail-table-wrap">
-                <div class="aq-detail-table-title">💰 Expected &gt; R$50k</div>
-                <table class="aq-detail-table">
-                  <thead><tr><th>Cliente</th><th>Expected</th><th>M0 GTV</th></tr></thead>
-                  <tbody id="aq-expected-table"></tbody>
+            <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div class="aq-detail-table-title">📋 Todos os clientes Inbound M0</div>
+              <div style="max-height:520px;overflow-y:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                  <thead>
+                    <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Cliente</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Contato HubSpot</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">Expected</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">M0 GTV</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Total</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:center;border-bottom:1px solid var(--border)">Ticket</th>
+                    </tr>
+                  </thead>
+                  <tbody id="aq-all-clients-table"></tbody>
                 </table>
               </div>
             </div>
@@ -1942,26 +1944,54 @@ m0_txn AS (
     AND DATE(t.effectiveAt) < DATE_ADD(DATE_TRUNC(DATE(w.close_ts), MONTH), INTERVAL 1 MONTH)
   GROUP BY 1
 ),
-company AS (
-  SELECT property_realm_id_, MAX(property_name) AS company_name
-  FROM \`p3-data-lake.hubspot.company\`
-  WHERE NOT COALESCE(_fivetran_deleted, false) AND property_realm_id_ IS NOT NULL
-  GROUP BY 1
-)
-,realm_names AS (
+realm_names AS (
   SELECT realmId, ANY_VALUE(organizationName) AS realm_name
   FROM \`p3-data-lake.consolidado.transactions\`
   WHERE organizationName IS NOT NULL AND realmId IS NOT NULL
   GROUP BY 1
+),
+hs_raw AS (
+  SELECT co.property_realm_id_, co.id AS company_id, co.property_name AS company_name,
+    ct.property_firstname AS contact_first, ct.property_lastname AS contact_last,
+    ct.property_email AS contact_email, ct.property_phone AS contact_phone,
+    ROW_NUMBER() OVER (PARTITION BY co.property_realm_id_ ORDER BY ct.property_createdate DESC) AS rn
+  FROM \`p3-data-lake.hubspot.company\` co
+  LEFT JOIN \`p3-data-lake.hubspot.contact_company\` cc ON cc.company_id = co.id
+  LEFT JOIN \`p3-data-lake.hubspot.contact\` ct
+    ON ct.id = cc.contact_id AND NOT COALESCE(ct._fivetran_deleted, false)
+  WHERE NOT COALESCE(co._fivetran_deleted, false) AND co.property_realm_id_ IS NOT NULL
+),
+hs AS (SELECT * FROM hs_raw WHERE rn = 1),
+open_tickets AS (
+  SELECT realmId, COUNT(DISTINCT conv_id) AS ticket_count
+  FROM (
+    SELECT
+      JSON_EXTRACT_SCALAR(data, '$.customer.account.customFields.realmId') AS realmId,
+      JSON_EXTRACT_SCALAR(data, '$.id') AS conv_id,
+      ROW_NUMBER() OVER (
+        PARTITION BY JSON_EXTRACT_SCALAR(data, '$.id')
+        ORDER BY _created DESC
+      ) AS rn
+    FROM \`p3-data-lake.atlas.conversations\`
+    WHERE JSON_EXTRACT_SCALAR(data, '$.status') = 'OPEN'
+  ) WHERE rn = 1
+  GROUP BY 1
 )
-SELECT w.property_realm_id AS realmId,
-  COALESCE(rn.realm_name, c.company_name, w.property_realm_id) AS clientName,
+SELECT
+  w.property_realm_id AS realmId,
+  COALESCE(rn.realm_name, hs.company_name, w.property_realm_id) AS clientName,
   COALESCE(w.expected_amount, 0) AS expected_amount,
-  COALESCE(m.m0_gtv, 0) AS m0_gtv
+  COALESCE(m.m0_gtv, 0) AS m0_gtv,
+  COALESCE(hs.contact_first, '') AS contact_first,
+  COALESCE(hs.contact_last, '') AS contact_last,
+  COALESCE(hs.contact_email, '') AS contact_email,
+  COALESCE(hs.contact_phone, '') AS contact_phone,
+  COALESCE(tk.ticket_count, 0) AS ticket_count
 FROM won_inbound w
 LEFT JOIN m0_txn m ON m.deal_id = w.deal_id
-LEFT JOIN company c ON c.property_realm_id_ = w.property_realm_id
 LEFT JOIN realm_names rn ON rn.realmId = w.property_realm_id
+LEFT JOIN hs ON hs.property_realm_id_ = w.property_realm_id
+LEFT JOIN open_tickets tk ON tk.realmId = w.property_realm_id
 ORDER BY m0_gtv DESC`;
 
 async function loadAquisicao(force) {
@@ -2114,30 +2144,39 @@ function renderInboundDetail(data) {
 
   const withTxn = data.filter(r => (parseFloat(r.m0_gtv)||0) > 0);
   const totalGTV = data.reduce((s,r) => s + (parseFloat(r.m0_gtv)||0), 0);
+  const withTickets = data.filter(r => parseInt(r.ticket_count) > 0);
   const expectedBig = data.filter(r => (parseFloat(r.expected_amount)||0) >= 50000);
 
   document.getElementById('aq-m0-total').textContent = fmt(totalGTV);
   document.getElementById('aq-m0-count').textContent = withTxn.length;
   document.getElementById('aq-expected-count').textContent = expectedBig.length;
 
-  const mkRow = r => `<tr>
-    <td title="${r.realmId}">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${r.clientName||r.realmId}</span>
-        <button onclick="openDrawer('${r.realmId}')" style="flex-shrink:0;font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid var(--border);background:var(--p3-bg);color:var(--p3);font-weight:700;cursor:pointer;white-space:nowrap">↗ Ver</button>
-      </div>
-    </td>
-    <td>${(parseFloat(r.expected_amount)||0)>0 ? fmt(r.expected_amount) : '—'}</td>
-    <td style="color:var(--p3);font-weight:800">${(parseFloat(r.m0_gtv)||0)>0 ? fmt(r.m0_gtv) : '—'}</td>
-  </tr>`;
-
-  const top10 = [...withTxn].sort((a,b)=>(parseFloat(b.m0_gtv)||0)-(parseFloat(a.m0_gtv)||0)).slice(0,10);
-  document.getElementById('aq-top10-table').innerHTML = top10.map(mkRow).join('');
-
-  const expRows = [...expectedBig].sort((a,b)=>(parseFloat(b.expected_amount)||0)-(parseFloat(a.expected_amount)||0));
-  document.getElementById('aq-expected-table').innerHTML = expRows.length
-    ? expRows.map(mkRow).join('')
-    : '<tr><td colspan="3" style="color:var(--text-2);font-style:italic;padding:16px">Nenhum cliente com expected acima de R$50k</td></tr>';
+  const tbody = document.getElementById('aq-all-clients-table');
+  tbody.innerHTML = data.map(r => {
+    const gtv = parseFloat(r.m0_gtv)||0;
+    const exp = parseFloat(r.expected_amount)||0;
+    const tickets = parseInt(r.ticket_count)||0;
+    const pct = totalGTV > 0 ? (gtv/totalGTV*100).toFixed(1) : '0.0';
+    const contactName = [r.contact_first, r.contact_last].filter(Boolean).join(' ');
+    const hasTicket = tickets > 0;
+    return `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:7px 14px;text-align:left">
+        <div style="display:flex;align-items:center;gap:5px;min-width:0">
+          ${hasTicket ? '<span title="Ticket aberto">🚨</span>' : ''}
+          <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;font-weight:600" title="${(r.clientName||r.realmId).replace(/"/g,"&quot;")}">${r.clientName||r.realmId}</span>
+          <button onclick="openDrawer('${r.realmId}')" style="flex-shrink:0;font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:var(--p3-bg);color:var(--p3);font-weight:700;cursor:pointer;line-height:1.4">↗</button>
+        </div>
+      </td>
+      <td style="padding:7px 14px;text-align:left">
+        ${contactName ? `<div style="font-weight:600;font-size:11px">${contactName}</div>` : ''}
+        ${r.contact_email ? `<div style="color:var(--text-2);font-size:10px">${r.contact_email}</div>` : `<div style="color:var(--text-2);font-size:10px;font-style:italic">Sem contato</div>`}
+      </td>
+      <td style="padding:7px 14px;text-align:right">${exp > 0 ? fmt(exp) : '—'}</td>
+      <td style="padding:7px 14px;text-align:right;font-weight:${gtv>0?'800':'400'};color:${gtv>0?'var(--p3)':'var(--text-2)'}">${gtv > 0 ? fmt(gtv) : '—'}</td>
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2)">${gtv > 0 ? pct+'%' : '—'}</td>
+      <td style="padding:7px 14px;text-align:center">${hasTicket ? `<span style="color:#C2410C;font-weight:700;font-size:11px">🎫 ${tickets}</span>` : `<span style="color:var(--text-2)">—</span>`}</td>
+    </tr>`;
+  }).join('');
 }
 </script>
 </body>
