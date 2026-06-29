@@ -1121,7 +1121,10 @@ function switchView(view) {
 
 // ══ DRAWER ════════════════════════════════════════════════
 function openDrawer(realmId) {
-  const c = state.clients.find(x=>x.realmId===realmId);
+  // busca em todas as fontes: cluster principal, tasks e followup
+  const c = state.clients.find(x=>x.realmId===realmId)
+         || tasksClients.find(x=>x.realmId===realmId)
+         || followupClients.find(x=>x.realmId===realmId);
   if (!c) return;
   state.drawerClient = c;
   document.getElementById('d-name').textContent = c.realmName;
@@ -1629,21 +1632,39 @@ async function loadHubspotInfo(realmId) {
   const body = document.getElementById('d-hs-body');
   section.style.display = 'block';
   try {
+    // property_realm_id_ (com underscore) é o campo correto; contato vem do join com hubspot.contact
     const rows = await bqQuery(`
-      SELECT id, property_principal_contato_nome, property_principal_contato_email,
-             property_principal_contato_telefone, property_name, property_cnpj
-      FROM \`p3-data-lake.hubspot.company\`
-      WHERE property_realm_id = '${realmId}' AND NOT COALESCE(_fivetran_deleted, false)
-      LIMIT 1`);
+      SELECT
+        co.id AS company_id,
+        co.property_name,
+        co.property_cnpj,
+        ct.property_firstname AS contact_first,
+        ct.property_lastname  AS contact_last,
+        ct.property_email     AS contact_email,
+        ct.property_phone     AS contact_phone
+      FROM \`p3-data-lake.hubspot.company\` co
+      LEFT JOIN \`p3-data-lake.hubspot.contact_company\` cc ON cc.company_id = co.id
+      LEFT JOIN \`p3-data-lake.hubspot.contact\` ct
+             ON ct.id = cc.contact_id AND NOT COALESCE(ct._fivetran_deleted, false)
+      WHERE co.property_realm_id_ = '${realmId}'
+        AND NOT COALESCE(co._fivetran_deleted, false)
+      LIMIT 3`);
     if (!rows.length) { body.innerHTML = '<span style="color:var(--text-2);font-size:12px">Não encontrado no HubSpot.</span>'; return; }
-    const h = rows[0];
-    const hsUrl = `https://app.hubspot.com/contacts/${HS_PORTAL_ID}/company/${h.id}`;
+    const h = rows[0]; // primeiro contato da empresa
+    const hsUrl = `https://app.hubspot.com/contacts/${HS_PORTAL_ID}/company/${h.company_id}`;
+    const contactName = [h.contact_first, h.contact_last].filter(Boolean).join(' ') || '—';
+    // se há múltiplos contatos, lista todos
+    const extraContacts = rows.slice(1).map(r =>
+      `<div style="font-size:11px;color:var(--text-2);padding-left:8px">+ ${[r.contact_first,r.contact_last].filter(Boolean).join(' ')||r.contact_email||'—'}</div>`
+    ).join('');
     body.innerHTML = `
-      <div class="hs-row"><span class="hs-label">Contato principal</span><span class="hs-value">${h.property_principal_contato_nome||'—'}</span></div>
-      <div class="hs-row"><span class="hs-label">E-mail</span><span class="hs-value" style="font-size:11px">${h.property_principal_contato_email||'—'}</span></div>
-      <div class="hs-row"><span class="hs-label">Telefone HubSpot</span><span class="hs-value">${h.property_principal_contato_telefone||'—'}</span></div>
+      <div class="hs-row"><span class="hs-label">Contato</span><span class="hs-value">${contactName}</span></div>
+      ${extraContacts}
+      <div class="hs-row"><span class="hs-label">E-mail</span><span class="hs-value" style="font-size:11px">${h.contact_email||'—'}</span></div>
+      <div class="hs-row"><span class="hs-label">Telefone</span><span class="hs-value">${h.contact_phone||'—'}</span></div>
+      <div class="hs-row"><span class="hs-label">CNPJ</span><span class="hs-value" style="font-size:11px">${h.property_cnpj||'—'}</span></div>
       <div style="margin-top:10px"><a class="hs-link" href="${hsUrl}" target="_blank">Abrir no HubSpot →</a></div>`;
-  } catch(e) { body.innerHTML = '<span style="color:var(--red);font-size:12px">Erro ao buscar HubSpot.</span>'; }
+  } catch(e) { body.innerHTML = `<span style="color:var(--red);font-size:12px">Erro: ${e.message}</span>`; }
 }
 
 // ══ ATLAS CONVERSATIONS (drawer) ══════════════════════════
