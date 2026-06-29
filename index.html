@@ -826,6 +826,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">M0 GTV</th>
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Total</th>
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Acum.</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">Dias p/ M1</th>
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:center;border-bottom:1px solid var(--border)">Ticket</th>
                     </tr>
                   </thead>
@@ -1929,7 +1930,13 @@ WITH m0_realms AS (
   SELECT
     realmId,
     ANY_VALUE(realmName) AS realm_name,
-    ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS m0_gtv
+    ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS m0_gtv,
+    ANY_VALUE(DATE(realmFirstTransactionDate)) AS first_txn_date,
+    DATE_DIFF(
+      DATE_ADD(DATE_TRUNC(ANY_VALUE(DATE(realmFirstTransactionDate)), MONTH), INTERVAL 1 MONTH),
+      CURRENT_DATE(),
+      DAY
+    ) AS days_remaining_m0
   FROM \`p3-data-lake.consolidado.transactions\`
   WHERE isValidTransaction=TRUE AND billingCurrency=986
     AND transactionCluster = 'M0'
@@ -1981,7 +1988,8 @@ SELECT
   COALESCE(hs.contact_last, '') AS contact_last,
   COALESCE(hs.contact_email, '') AS contact_email,
   COALESCE(hs.contact_phone, '') AS contact_phone,
-  COALESCE(tk.ticket_count, 0) AS ticket_count
+  COALESCE(tk.ticket_count, 0) AS ticket_count,
+  m.days_remaining_m0
 FROM m0_realms m
 LEFT JOIN hs ON hs.property_realm_id_ = m.realmId
 LEFT JOIN expected e ON e.realmId = m.realmId
@@ -2174,6 +2182,12 @@ function renderInboundDetail(data) {
       <td style="padding:7px 14px;text-align:right;font-weight:${gtv>0?'800':'400'};color:${gtv>0?'var(--p3)':'var(--text-2)'}">${gtv > 0 ? fmt(gtv) : '—'}</td>
       <td style="padding:7px 14px;text-align:right;color:var(--text-2)">${gtv > 0 ? pctStr : '—'}</td>
       <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px">${gtv > 0 ? cumStr : '—'}</td>
+      <td style="padding:7px 14px;text-align:right">${(()=>{
+        const d = parseInt(r.days_remaining_m0);
+        if (isNaN(d)) return '<span style="color:var(--text-2)">—</span>';
+        const color = d <= 3 ? '#B91C1C' : d <= 7 ? '#C2410C' : '#15803D';
+        return `<span style="font-weight:800;color:${color}">${d}d</span>`;
+      })()}</td>
       <td style="padding:7px 14px;text-align:center">${hasTicket ? `<span style="color:#C2410C;font-weight:700;font-size:11px">🎫 ${tickets}</span>` : `<span style="color:var(--text-2)">—</span>`}</td>
     </tr>`;
   }).join('');
