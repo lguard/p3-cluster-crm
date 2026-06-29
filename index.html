@@ -498,9 +498,16 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .aq-locked-icon { font-size:48px; }
 .aq-locked-title { font-size:18px;font-weight:800;color:var(--text); }
 .aq-locked-sub { font-size:13px;text-align:center;max-width:300px; }
-.aq-period { display:flex;align-items:center;gap:12px;padding:16px 28px 0; }
+.aq-period { display:flex;align-items:center;gap:10px;padding:16px 28px 0;flex-wrap:wrap; }
 .aq-period-label { font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px; }
 .aq-period-val { font-size:12px;font-weight:800;color:var(--p3);background:var(--p3-pale);padding:4px 12px;border-radius:20px; }
+.aq-month-nav { display:flex;align-items:center;gap:6px; }
+.aq-month-btn { font-size:12px;padding:4px 9px;border-radius:8px;border:1px solid var(--border);background:var(--white);color:var(--text);cursor:pointer;line-height:1; }
+.aq-month-btn:disabled { opacity:.35;cursor:default; }
+.aq-canal-pills { display:flex;align-items:center;gap:5px; }
+.aq-canal-sep { width:1px;height:18px;background:var(--border);margin:0 4px; }
+.aq-canal-btn { font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);cursor:pointer;transition:all .15s; }
+.aq-canal-btn.active { background:var(--p3);color:#fff;border-color:var(--p3); }
 .aq-funnels { display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:20px 28px 32px; }
 .aq-panel { background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm); }
 .aq-panel-header { padding:16px 20px 12px;border-bottom:1px solid var(--border); }
@@ -791,7 +798,19 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <div id="aq-content" style="display:none">
           <div class="aq-period">
             <span class="aq-period-label">Período</span>
-            <span class="aq-period-val" id="aq-period-label">—</span>
+            <div class="aq-month-nav">
+              <button class="aq-month-btn" onclick="aqPrevMonth()" title="Mês anterior">◀</button>
+              <span class="aq-period-val" id="aq-period-label">—</span>
+              <button class="aq-month-btn" id="aq-next-btn" onclick="aqNextMonth()" title="Próximo mês">▶</button>
+            </div>
+            <div class="aq-canal-sep"></div>
+            <span class="aq-period-label">Canal</span>
+            <div class="aq-canal-pills">
+              <button class="aq-canal-btn active" data-canal="all" onclick="setAqCanal('all')">Todos</button>
+              <button class="aq-canal-btn" data-canal="Inbound" onclick="setAqCanal('Inbound')">Inbound</button>
+              <button class="aq-canal-btn" data-canal="Outbound" onclick="setAqCanal('Outbound')">Outbound</button>
+              <button class="aq-canal-btn" data-canal="Parceiros" onclick="setAqCanal('Parceiros')">Parceiros</button>
+            </div>
             <button class="tasks-refresh" onclick="loadAquisicao(true)" style="margin-left:auto">↺ Atualizar</button>
           </div>
           <div class="aq-funnels" id="aq-funnels">
@@ -1866,7 +1885,7 @@ WITH deals AS (
     END AS funil
   FROM \`p3-data-lake.hubspot.deal\` d
   WHERE NOT COALESCE(d._fivetran_deleted, false) AND NOT COALESCE(d.is_deleted, false)
-    AND DATE(d.property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    AND DATE(d.property_createdate) >= {{MONTH_START}}
     AND d.deal_pipeline_id IN (688402786,9368679,9456263,668588036,669263690,5547539,760976898)
 )
 SELECT
@@ -1896,7 +1915,7 @@ SELECT
   ROUND(SAFE_DIVIDE(COUNTIF(property_hs_is_closed_won)*100.0, COUNT(*)),1) AS pct_ganho
 FROM \`p3-data-lake.hubspot.deal\`
 WHERE NOT COALESCE(_fivetran_deleted, false) AND NOT COALESCE(is_deleted, false)
-  AND DATE(property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+  AND DATE(property_createdate) >= {{MONTH_START}}
   AND deal_pipeline_id IN (688402786,9368679,9456263,668588036,669263690,5547539,760976898)
 GROUP BY 1`;
 
@@ -1910,7 +1929,7 @@ WITH won AS (
     END AS funil
   FROM \`p3-data-lake.hubspot.deal\`
   WHERE NOT COALESCE(_fivetran_deleted, false) AND NOT COALESCE(is_deleted, false)
-    AND DATE(property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    AND DATE(property_createdate) >= {{MONTH_START}}
     AND property_hs_is_closed_won = TRUE
     AND property_realm_id IS NOT NULL
     AND deal_pipeline_id IN (688402786,9368679,9456263,668588036,669263690,5547539,760976898)
@@ -1933,22 +1952,33 @@ SELECT funil,
   COUNT(*) AS n_with_txn
 FROM m0 GROUP BY 1`;
 
-const AQ_INBOUND_DETAIL_QUERY = `
+function buildDetailQuery() {
+  const ms = aqMonthStartSQL();
+  const me = aqMonthEndSQL();
+  const isCur = aqIsCurrentMonth();
+  const m0Filter = isCur
+    ? `AND transactionCluster = 'M0'\n    AND DATE(effectiveAt) >= ${ms}`
+    : `AND DATE(realmFirstTransactionDate) >= ${ms}
+    AND DATE(realmFirstTransactionDate) < ${me}
+    AND DATE(effectiveAt) >= DATE(realmFirstTransactionDate)
+    AND DATE(effectiveAt) <= DATE_ADD(DATE(realmFirstTransactionDate), INTERVAL 29 DAY)`;
+  const daysExpr = isCur
+    ? `DATE_DIFF(DATE_ADD(ANY_VALUE(DATE(realmFirstTransactionDate)), INTERVAL 29 DAY), CURRENT_DATE(), DAY) AS days_remaining_m0`
+    : `NULL AS days_remaining_m0`;
+  const expDateFilter = isCur
+    ? `AND DATE(property_createdate) >= ${ms}`
+    : `AND DATE(property_closedate) >= ${ms} AND DATE(property_closedate) < ${me}`;
+  return `
 WITH m0_realms AS (
   SELECT
     realmId,
     ANY_VALUE(realmName) AS realm_name,
     ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS m0_gtv,
     ANY_VALUE(DATE(realmFirstTransactionDate)) AS first_txn_date,
-    DATE_DIFF(
-      DATE_ADD(ANY_VALUE(DATE(realmFirstTransactionDate)), INTERVAL 29 DAY),
-      CURRENT_DATE(),
-      DAY
-    ) AS days_remaining_m0
+    ${daysExpr}
   FROM \`p3-data-lake.consolidado.transactions\`
   WHERE isValidTransaction=TRUE AND billingCurrency=986
-    AND transactionCluster = 'M0'
-    AND DATE(effectiveAt) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    ${m0Filter}
   GROUP BY 1
 ),
 hs_raw AS (
@@ -1992,7 +2022,7 @@ total_expected AS (
   FROM \`p3-data-lake.hubspot.deal\`
   WHERE NOT COALESCE(_fivetran_deleted, false) AND NOT COALESCE(is_deleted, false)
     AND property_hs_is_closed_won = TRUE
-    AND DATE(property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    ${expDateFilter}
     AND deal_pipeline_id IN (688402786, 9368679, 9456263)
     AND property_gtv_mensal_estimado IS NOT NULL
 )
@@ -2013,22 +2043,79 @@ LEFT JOIN hs ON hs.property_realm_id_ = m.realmId
 LEFT JOIN expected e ON e.realmId = m.realmId
 LEFT JOIN open_tickets tk ON tk.realmId = m.realmId
 ORDER BY m.m0_gtv DESC`;
+}
+
+// ── Aquisição helpers ──────────────────────────────────────
+let aqSelectedMonth = null; // 'YYYY-MM-01' or null = current
+let aqCanalFilter = 'all';
+
+function aqIsCurrentMonth() {
+  if (!aqSelectedMonth) return true;
+  const now = new Date();
+  const sel = new Date(aqSelectedMonth + 'T12:00:00');
+  return sel.getFullYear() === now.getFullYear() && sel.getMonth() === now.getMonth();
+}
+function aqMonthStartSQL() {
+  return aqSelectedMonth ? `DATE '${aqSelectedMonth}'` : 'DATE_TRUNC(CURRENT_DATE(), MONTH)';
+}
+function aqMonthEndSQL() {
+  const base = aqSelectedMonth ? new Date(aqSelectedMonth + 'T12:00:00') : new Date();
+  base.setDate(1); base.setMonth(base.getMonth() + 1);
+  return `DATE '${base.toISOString().slice(0,7)}-01'`;
+}
+function buildAqQuery(sql) {
+  return sql.replace(/\{\{MONTH_START\}\}/g, aqMonthStartSQL());
+}
+function aqUpdatePeriodLabel() {
+  const d = aqSelectedMonth ? new Date(aqSelectedMonth + 'T12:00:00') : new Date();
+  const lbl = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) + (aqIsCurrentMonth() ? ' (MTD)' : '');
+  document.getElementById('aq-period-label').textContent = lbl;
+  const btn = document.getElementById('aq-next-btn');
+  if (btn) btn.disabled = aqIsCurrentMonth();
+}
+function aqPrevMonth() {
+  const base = aqSelectedMonth ? new Date(aqSelectedMonth + 'T12:00:00') : new Date();
+  base.setDate(1); base.setMonth(base.getMonth() - 1);
+  aqSelectedMonth = base.toISOString().slice(0,7) + '-01';
+  aqLoaded = false; aqInboundData = [];
+  loadAquisicao(true);
+}
+function aqNextMonth() {
+  if (aqIsCurrentMonth()) return;
+  const base = new Date(aqSelectedMonth + 'T12:00:00');
+  base.setDate(1); base.setMonth(base.getMonth() + 1);
+  const iso = base.toISOString().slice(0,7) + '-01';
+  const cur = new Date(); cur.setDate(1);
+  const curIso = cur.toISOString().slice(0,7) + '-01';
+  aqSelectedMonth = iso >= curIso ? null : iso;
+  aqLoaded = false; aqInboundData = [];
+  loadAquisicao(true);
+}
+function setAqCanal(canal) {
+  aqCanalFilter = canal;
+  document.querySelectorAll('.aq-canal-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.canal === canal);
+  });
+  document.querySelectorAll('.aq-panel').forEach(p => {
+    p.style.display = (canal === 'all' || canal === p.dataset.funil) ? '' : 'none';
+  });
+  const detail = document.getElementById('aq-inbound-detail');
+  if (detail) detail.style.display =
+    (canal === 'all' || canal === 'Inbound') && aqInboundData.length > 0 ? 'block' : 'none';
+}
 
 async function loadAquisicao(force) {
   if (aqLoaded && !force) return;
   const el = document.getElementById('aq-funnels');
   el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-2);font-size:13px">Carregando dados de aquisição…</div>';
 
-  // Update period label
-  const now = new Date();
-  document.getElementById('aq-period-label').textContent =
-    `${now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} (MTD)`;
+  aqUpdatePeriodLabel();
 
   try {
     const [stages, summary, m0] = await Promise.all([
-      bqQuery(AQ_STAGES_QUERY),
-      bqQuery(AQ_SUMMARY_QUERY),
-      bqQuery(AQ_M0_QUERY),
+      bqQuery(buildAqQuery(AQ_STAGES_QUERY)),
+      bqQuery(buildAqQuery(AQ_SUMMARY_QUERY)),
+      bqQuery(buildAqQuery(AQ_M0_QUERY)),
     ]);
     aqLoaded = true;
 
@@ -2037,15 +2124,17 @@ async function loadAquisicao(force) {
     document.getElementById('nb-aq').textContent = totalGanhos;
 
     renderAquisicao(stages, summary, m0);
+    setAqCanal(aqCanalFilter); // re-apply canal filter after render
   } catch(e) {
     el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);font-size:13px">Erro: ${e.message}</div>`;
     return;
   }
 
   try {
-    const inboundDetail = await bqQuery(AQ_INBOUND_DETAIL_QUERY);
+    const inboundDetail = await bqQuery(buildDetailQuery());
     aqInboundData = inboundDetail;
     renderInboundDetail(inboundDetail);
+    setAqCanal(aqCanalFilter); // apply canal filter to detail visibility
   } catch(e) {
     console.error('Inbound detail error:', e);
     document.getElementById('aq-inbound-detail').style.display = 'none';
@@ -2076,6 +2165,7 @@ function renderAquisicao(stages, summary, m0) {
 
     const panel = document.createElement('div');
     panel.className = 'aq-panel';
+    panel.dataset.funil = funil;
 
     // Conversion % per funnel
     const pct = parseFloat(s.pct_ganho)||0;
