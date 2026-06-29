@@ -812,6 +812,14 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
                 <div class="aq-detail-kpi-label">Expected &gt; R$50k</div>
                 <div class="aq-detail-kpi-val" id="aq-expected-count">—</div>
               </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">Expected GTV (Ganhos Jun)</div>
+                <div class="aq-detail-kpi-val" id="aq-expected-total">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">M0 GTV / Expected</div>
+                <div class="aq-detail-kpi-val" id="aq-m0-vs-expected">—</div>
+              </div>
             </div>
             <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
               <div class="aq-detail-table-title">📋 Todos os clientes Inbound M0</div>
@@ -1978,6 +1986,15 @@ open_tickets AS (
     WHERE JSON_EXTRACT_SCALAR(data, '$.status') = 'OPEN'
   ) WHERE rn = 1
   GROUP BY 1
+),
+total_expected AS (
+  SELECT ROUND(SUM(property_gtv_mensal_estimado), 0) AS val
+  FROM \`p3-data-lake.hubspot.deal\`
+  WHERE NOT COALESCE(_fivetran_deleted, false) AND NOT COALESCE(is_deleted, false)
+    AND property_hs_is_closed_won = TRUE
+    AND DATE(property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    AND deal_pipeline_id IN (688402786, 9368679, 9456263)
+    AND property_gtv_mensal_estimado IS NOT NULL
 )
 SELECT
   m.realmId,
@@ -1989,7 +2006,8 @@ SELECT
   COALESCE(hs.contact_email, '') AS contact_email,
   COALESCE(hs.contact_phone, '') AS contact_phone,
   COALESCE(tk.ticket_count, 0) AS ticket_count,
-  m.days_remaining_m0
+  m.days_remaining_m0,
+  (SELECT val FROM total_expected) AS total_expected_gtv
 FROM m0_realms m
 LEFT JOIN hs ON hs.property_realm_id_ = m.realmId
 LEFT JOIN expected e ON e.realmId = m.realmId
@@ -2149,9 +2167,14 @@ function renderInboundDetail(data) {
   const withTickets = data.filter(r => parseInt(r.ticket_count) > 0);
   const expectedBig = data.filter(r => (parseFloat(r.expected_amount)||0) >= 50000);
 
+  const totalExpected = data.length > 0 ? (parseFloat(data[0].total_expected_gtv)||0) : 0;
+  const m0VsExpPct = totalExpected > 0 ? (totalGTV / totalExpected * 100).toFixed(1) + '%' : '—';
+
   document.getElementById('aq-m0-total').textContent = fmt(totalGTV);
   document.getElementById('aq-m0-count').textContent = withTxn.length;
   document.getElementById('aq-expected-count').textContent = expectedBig.length;
+  document.getElementById('aq-expected-total').textContent = totalExpected > 0 ? fmt(totalExpected) : '—';
+  document.getElementById('aq-m0-vs-expected').textContent = m0VsExpPct;
 
   const tbody = document.getElementById('aq-all-clients-table');
   let cumPct = 0;
