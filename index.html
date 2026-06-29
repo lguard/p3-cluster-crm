@@ -1964,23 +1964,30 @@ async function loadAquisicao(force) {
     `${now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} (MTD)`;
 
   try {
-    const [stages, summary, m0, inboundDetail] = await Promise.all([
+    const [stages, summary, m0] = await Promise.all([
       bqQuery(AQ_STAGES_QUERY),
       bqQuery(AQ_SUMMARY_QUERY),
       bqQuery(AQ_M0_QUERY),
-      bqQuery(AQ_INBOUND_DETAIL_QUERY),
     ]);
     aqLoaded = true;
-    aqInboundData = inboundDetail;
 
     // Update sidebar badge with total ganhos
     const totalGanhos = summary.reduce((s,r)=>s+(parseInt(r.ganhos)||0),0);
     document.getElementById('nb-aq').textContent = totalGanhos;
 
     renderAquisicao(stages, summary, m0);
-    renderInboundDetail(inboundDetail);
   } catch(e) {
     el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);font-size:13px">Erro: ${e.message}</div>`;
+    return;
+  }
+
+  try {
+    const inboundDetail = await bqQuery(AQ_INBOUND_DETAIL_QUERY);
+    aqInboundData = inboundDetail;
+    renderInboundDetail(inboundDetail);
+  } catch(e) {
+    console.error('Inbound detail error:', e);
+    document.getElementById('aq-inbound-detail').style.display = 'none';
   }
 }
 
@@ -2109,10 +2116,10 @@ function renderInboundDetail(data) {
   </tr>`;
 
   const top10 = [...withTxn].sort((a,b)=>(parseFloat(b.m0_gtv)||0)-(parseFloat(a.m0_gtv)||0)).slice(0,10);
-  document.querySelector('#aq-top10-table').innerHTML = top10.map(mkRow).join('');
+  document.getElementById('aq-top10-table').innerHTML = top10.map(mkRow).join('');
 
   const expRows = [...expectedBig].sort((a,b)=>(parseFloat(b.expected_amount)||0)-(parseFloat(a.expected_amount)||0));
-  document.querySelector('#aq-expected-table').innerHTML = expRows.length
+  document.getElementById('aq-expected-table').innerHTML = expRows.length
     ? expRows.map(mkRow).join('')
     : '<tr><td colspan="3" style="color:var(--text-2);font-style:italic;padding:16px">Nenhum cliente com expected acima de R$50k</td></tr>';
 }
