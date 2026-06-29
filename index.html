@@ -1807,12 +1807,11 @@ SELECT
   s.label AS stage,
   s.display_order,
   COUNT(*) AS n,
-  COUNTIF(d.property_hs_is_closed_won) AS n_won,
-  COUNT(*) OVER (PARTITION BY d.funil) AS total_funil
+  COUNTIF(d.property_hs_is_closed_won) AS n_won
 FROM deals d
 JOIN \`p3-data-lake.hubspot.deal_pipeline_stage\` s
   ON s.stage_id = d.stage_id_str AND NOT COALESCE(s._fivetran_deleted, false)
-GROUP BY 1,2,3,4,7
+GROUP BY 1,2,3,4
 ORDER BY d.funil, d.deal_pipeline_id, s.display_order`;
 
 const AQ_SUMMARY_QUERY = `
