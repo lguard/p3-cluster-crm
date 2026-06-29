@@ -2044,7 +2044,7 @@ FROM m0 GROUP BY 1`;
 function buildDetailQuery() {
   const ms = aqMonthStartSQL();
   const me = aqMonthEndSQL();
-  const isCur = aqIsCurrentMonth();
+  const isCur = aqPeriodType === 'month' && aqIsCurrentPeriod();
   const m0Filter = isCur
     ? `AND transactionCluster = 'M0'\n    AND DATE(effectiveAt) >= ${ms}`
     : `AND DATE(realmFirstTransactionDate) >= ${ms}
