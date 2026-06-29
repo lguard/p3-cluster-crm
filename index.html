@@ -526,6 +526,23 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .aq-divider { border:none;border-top:1px solid var(--border);margin:8px 20px; }
 .aq-refresh { margin:0 20px 14px;font-size:11px;font-weight:700;color:var(--p3);background:none;border:none;cursor:pointer;padding:0; }
 .aq-refresh:hover { text-decoration:underline; }
+
+/* ─── AQUISIÇÃO DETAIL ───── */
+.aq-detail { padding:0 28px 32px; }
+.aq-detail-title { font-size:14px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px; }
+.aq-detail-kpi-row { display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap; }
+.aq-detail-kpi { background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 18px; }
+.aq-detail-kpi-label { font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text-2);margin-bottom:3px; }
+.aq-detail-kpi-val { font-size:20px;font-weight:900;color:var(--p3); }
+.aq-detail-tables { display:grid;grid-template-columns:1fr 1fr;gap:18px; }
+.aq-detail-table-wrap { background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden; }
+.aq-detail-table-title { font-size:12px;font-weight:800;color:var(--text);padding:11px 16px;border-bottom:1px solid var(--border);background:var(--p3-bg); }
+.aq-detail-table { width:100%;border-collapse:collapse;font-size:12px; }
+.aq-detail-table th { font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:7px 14px;text-align:right;border-bottom:1px solid var(--border); }
+.aq-detail-table th:first-child { text-align:left; }
+.aq-detail-table td { padding:7px 14px;color:var(--text);border-top:1px solid var(--border);text-align:right; }
+.aq-detail-table td:first-child { text-align:left;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.aq-detail-table tr:hover td { background:var(--p3-bg); }
 </style>
 </head>
 <body>
@@ -779,6 +796,39 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
           </div>
           <div class="aq-funnels" id="aq-funnels">
             <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-2);font-size:13px">Clique em Atualizar para carregar os dados.</div>
+          </div>
+          <div class="aq-detail" id="aq-inbound-detail" style="display:none">
+            <div class="aq-detail-title">📊 Detalhamento M0 — Inbound</div>
+            <div class="aq-detail-kpi-row">
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">GTV Total M0 MTD</div>
+                <div class="aq-detail-kpi-val" id="aq-m0-total">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">Com transação M0</div>
+                <div class="aq-detail-kpi-val" id="aq-m0-count">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">Expected &gt; R$50k</div>
+                <div class="aq-detail-kpi-val" id="aq-expected-count">—</div>
+              </div>
+            </div>
+            <div class="aq-detail-tables">
+              <div class="aq-detail-table-wrap">
+                <div class="aq-detail-table-title">🏆 Top 10 GTV M0</div>
+                <table class="aq-detail-table">
+                  <thead><tr><th>Cliente</th><th>Expected</th><th>M0 GTV</th></tr></thead>
+                  <tbody id="aq-top10-table"></tbody>
+                </table>
+              </div>
+              <div class="aq-detail-table-wrap">
+                <div class="aq-detail-table-title">💰 Expected &gt; R$50k</div>
+                <table class="aq-detail-table">
+                  <thead><tr><th>Cliente</th><th>Expected</th><th>M0 GTV</th></tr></thead>
+                  <tbody id="aq-expected-table"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1774,6 +1824,7 @@ async function loadAtlasConvs(realmId) {
 // ══ AQUISIÇÃO ════════════════════════════════════════════
 const AQUISICAO_ALLOWED = ['luiz.guardieiro@portao3.com.br'];
 let aqLoaded = false;
+let aqInboundData = [];
 
 // Pipeline IDs (INT64 in BQ)
 const AQ_INBOUND  = [688402786, 9368679, 9456263];
@@ -1865,6 +1916,43 @@ SELECT funil,
   COUNT(*) AS n_with_txn
 FROM m0 GROUP BY 1`;
 
+const AQ_INBOUND_DETAIL_QUERY = `
+WITH won_inbound AS (
+  SELECT d.deal_id, d.property_realm_id,
+    COALESCE(d.property_closedate, CURRENT_TIMESTAMP()) AS close_ts,
+    SAFE_CAST(d.property_amount AS FLOAT64) AS expected_amount
+  FROM \`p3-data-lake.hubspot.deal\` d
+  WHERE NOT COALESCE(d._fivetran_deleted, false) AND NOT COALESCE(d.is_deleted, false)
+    AND DATE(d.property_createdate) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    AND d.property_hs_is_closed_won = TRUE
+    AND d.property_realm_id IS NOT NULL
+    AND d.deal_pipeline_id IN (688402786, 9368679, 9456263)
+),
+m0_txn AS (
+  SELECT w.deal_id,
+    ROUND(SUM(t.billingAmountAuthorizedImpact)/100.0, 0) AS m0_gtv
+  FROM won_inbound w
+  JOIN \`p3-data-lake.consolidado.transactions\` t ON t.realmId = w.property_realm_id
+  WHERE t.isValidTransaction=TRUE AND t.billingCurrency=986
+    AND DATE(t.effectiveAt) >= DATE_TRUNC(DATE(w.close_ts), MONTH)
+    AND DATE(t.effectiveAt) < DATE_ADD(DATE_TRUNC(DATE(w.close_ts), MONTH), INTERVAL 1 MONTH)
+  GROUP BY 1
+),
+company AS (
+  SELECT property_realm_id_, MAX(property_name) AS company_name
+  FROM \`p3-data-lake.hubspot.company\`
+  WHERE NOT COALESCE(_fivetran_deleted, false) AND property_realm_id_ IS NOT NULL
+  GROUP BY 1
+)
+SELECT w.property_realm_id AS realmId,
+  COALESCE(c.company_name, w.property_realm_id) AS clientName,
+  COALESCE(w.expected_amount, 0) AS expected_amount,
+  COALESCE(m.m0_gtv, 0) AS m0_gtv
+FROM won_inbound w
+LEFT JOIN m0_txn m ON m.deal_id = w.deal_id
+LEFT JOIN company c ON c.property_realm_id_ = w.property_realm_id
+ORDER BY m0_gtv DESC`;
+
 async function loadAquisicao(force) {
   if (aqLoaded && !force) return;
   const el = document.getElementById('aq-funnels');
@@ -1876,18 +1964,21 @@ async function loadAquisicao(force) {
     `${now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} (MTD)`;
 
   try {
-    const [stages, summary, m0] = await Promise.all([
+    const [stages, summary, m0, inboundDetail] = await Promise.all([
       bqQuery(AQ_STAGES_QUERY),
       bqQuery(AQ_SUMMARY_QUERY),
       bqQuery(AQ_M0_QUERY),
+      bqQuery(AQ_INBOUND_DETAIL_QUERY),
     ]);
     aqLoaded = true;
+    aqInboundData = inboundDetail;
 
     // Update sidebar badge with total ganhos
     const totalGanhos = summary.reduce((s,r)=>s+(parseInt(r.ganhos)||0),0);
     document.getElementById('nb-aq').textContent = totalGanhos;
 
     renderAquisicao(stages, summary, m0);
+    renderInboundDetail(inboundDetail);
   } catch(e) {
     el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);font-size:13px">Erro: ${e.message}</div>`;
   }
@@ -1996,6 +2087,34 @@ function renderAquisicao(stages, summary, m0) {
       });
     });
   });
+}
+
+function renderInboundDetail(data) {
+  const detail = document.getElementById('aq-inbound-detail');
+  if (!data || data.length === 0) { detail.style.display = 'none'; return; }
+  detail.style.display = 'block';
+
+  const withTxn = data.filter(r => (parseFloat(r.m0_gtv)||0) > 0);
+  const totalGTV = data.reduce((s,r) => s + (parseFloat(r.m0_gtv)||0), 0);
+  const expectedBig = data.filter(r => (parseFloat(r.expected_amount)||0) >= 50000);
+
+  document.getElementById('aq-m0-total').textContent = fmt(totalGTV);
+  document.getElementById('aq-m0-count').textContent = withTxn.length;
+  document.getElementById('aq-expected-count').textContent = expectedBig.length;
+
+  const mkRow = r => `<tr>
+    <td title="${r.clientName||''}">${r.clientName||r.realmId}</td>
+    <td>${(parseFloat(r.expected_amount)||0)>0 ? fmt(r.expected_amount) : '—'}</td>
+    <td style="color:var(--p3);font-weight:800">${(parseFloat(r.m0_gtv)||0)>0 ? fmt(r.m0_gtv) : '—'}</td>
+  </tr>`;
+
+  const top10 = [...withTxn].sort((a,b)=>(parseFloat(b.m0_gtv)||0)-(parseFloat(a.m0_gtv)||0)).slice(0,10);
+  document.querySelector('#aq-top10-table').innerHTML = top10.map(mkRow).join('');
+
+  const expRows = [...expectedBig].sort((a,b)=>(parseFloat(b.expected_amount)||0)-(parseFloat(a.expected_amount)||0));
+  document.querySelector('#aq-expected-table').innerHTML = expRows.length
+    ? expRows.map(mkRow).join('')
+    : '<tr><td colspan="3" style="color:var(--text-2);font-style:italic;padding:16px">Nenhum cliente com expected acima de R$50k</td></tr>';
 }
 </script>
 </body>
