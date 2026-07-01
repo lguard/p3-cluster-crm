@@ -1040,7 +1040,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
               </div>
             </div>
             <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-              <div class="aq-detail-table-title">📋 Todos os clientes M1+ — GTV ontem vs média 30d</div>
+              <div class="aq-detail-table-title">📋 Todos os clientes M1+ — GTV ontem vs média 30d · resultado parcial do mês</div>
               <div style="max-height:500px;overflow-y:auto">
                 <table id="ops-daily-sort-table" style="width:100%;border-collapse:collapse;font-size:12px">
                   <thead>
@@ -1050,7 +1050,11 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:center;border-bottom:1px solid var(--border)">Cluster</th>
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">GTV Ontem</th>
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">Média/dia (30d)</th>
-                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Realizado</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Ontem</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border);border-left:2px solid var(--border)">Avg/mês (life)</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">GTV mês</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">Exp. mês</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Mês</th>
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Status</th>
                     </tr>
                   </thead>
@@ -2933,12 +2937,46 @@ avg_30d AS (
     AND DATE(effectiveAt) >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
     AND DATE(effectiveAt) < CURRENT_DATE()
   GROUP BY 1
+),
+lifetime AS (
+  SELECT realmId,
+    ROUND(SUM(billingAmountAuthorizedImpact)/100.0 /
+      GREATEST(DATE_DIFF(CURRENT_DATE(), MIN(DATE(effectiveAt)), MONTH), 1), 0) AS lifetime_avg_monthly
+  FROM \`p3-data-lake.consolidado.transactions\`
+  WHERE isValidTransaction=TRUE AND billingCurrency=986
+    AND transactionCluster IN ('M1','M2','M3+')
+  GROUP BY 1
+),
+mtd AS (
+  SELECT realmId,
+    ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS mtd_gtv
+  FROM \`p3-data-lake.consolidado.transactions\`
+  WHERE isValidTransaction=TRUE AND billingCurrency=986
+    AND transactionCluster IN ('M1','M2','M3+')
+    AND DATE(effectiveAt) >= DATE_TRUNC(CURRENT_DATE(), MONTH)
+    AND DATE(effectiveAt) < CURRENT_DATE()
+  GROUP BY 1
 )
 SELECT y.realmId, y.realm_name, y.cluster, y.yesterday_gtv,
   COALESCE(a.avg_daily_gtv, 0) AS avg_daily_gtv,
-  ROUND(SAFE_DIVIDE(y.yesterday_gtv, COALESCE(a.avg_daily_gtv, 0)) * 100, 1) AS pct_of_avg
+  ROUND(SAFE_DIVIDE(y.yesterday_gtv, COALESCE(a.avg_daily_gtv, 0)) * 100, 1) AS pct_of_avg,
+  COALESCE(lf.lifetime_avg_monthly, 0) AS lifetime_avg_monthly,
+  COALESCE(m.mtd_gtv, 0) AS mtd_gtv,
+  ROUND(COALESCE(lf.lifetime_avg_monthly, 0) * SAFE_DIVIDE(
+    EXTRACT(DAY FROM CURRENT_DATE()) - 1,
+    DATE_DIFF(DATE_TRUNC(DATE_ADD(CURRENT_DATE(), INTERVAL 1 MONTH), MONTH), DATE_TRUNC(CURRENT_DATE(), MONTH), DAY)
+  ), 0) AS expected_mtd,
+  ROUND(SAFE_DIVIDE(
+    COALESCE(m.mtd_gtv, 0),
+    COALESCE(lf.lifetime_avg_monthly, 0) * SAFE_DIVIDE(
+      EXTRACT(DAY FROM CURRENT_DATE()) - 1,
+      DATE_DIFF(DATE_TRUNC(DATE_ADD(CURRENT_DATE(), INTERVAL 1 MONTH), MONTH), DATE_TRUNC(CURRENT_DATE(), MONTH), DAY)
+    )
+  ) * 100, 1) AS pct_mtd
 FROM yesterday y
 LEFT JOIN avg_30d a ON a.realmId = y.realmId
+LEFT JOIN lifetime lf ON lf.realmId = y.realmId
+LEFT JOIN mtd m ON m.realmId = y.realmId
 ORDER BY y.yesterday_gtv DESC`;
 
 // ── Render ──────────────────────────────────────────────────
@@ -3052,22 +3090,28 @@ function renderOpsDailyDetail(data) {
   const clColors = {'M1':'#C2410C','M2':'#7C3AED','M3+':'#15803D'};
   const tbody = document.getElementById('ops-daily-table');
   tbody.innerHTML = filtered.map((r, idx) => {
-    const gtv    = parseFloat(r.yesterday_gtv)||0;
-    const avgDay = parseFloat(r.avg_daily_gtv)||0;
-    const pct    = parseFloat(r.pct_of_avg)||0;
-    const hasAvg = avgDay > 0;
-    const cl     = r.cluster || 'M1+';
-    const clColor = clColors[cl] || '#6B7280';
+    const gtv        = parseFloat(r.yesterday_gtv)||0;
+    const avgDay     = parseFloat(r.avg_daily_gtv)||0;
+    const pct        = parseFloat(r.pct_of_avg)||0;
+    const lifeAvg    = parseFloat(r.lifetime_avg_monthly)||0;
+    const mtdGtv     = parseFloat(r.mtd_gtv)||0;
+    const expMtd     = parseFloat(r.expected_mtd)||0;
+    const pctMtd     = parseFloat(r.pct_mtd)||0;
+    const hasAvg     = avgDay > 0;
+    const hasMtd     = expMtd > 0;
+    const cl         = r.cluster || 'M1+';
+    const clColor    = clColors[cl] || '#6B7280';
     let statusLabel, statusColor;
     if (!hasAvg)       { statusLabel='Sem histórico'; statusColor='#9CA3AF'; }
     else if (pct>=100) { statusLabel='✅ No ritmo';   statusColor='#15803D'; }
     else if (pct>=50)  { statusLabel='⚠ Abaixo';     statusColor='#C2410C'; }
     else               { statusLabel='🔴 Baixo';      statusColor='#B91C1C'; }
+    const mtdColor = hasMtd ? (pctMtd>=100?'#15803D':pctMtd>=70?'#C2410C':'#B91C1C') : '#9CA3AF';
     return `<tr style="border-top:1px solid var(--border)">
       <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px;font-weight:700">${idx+1}</td>
       <td style="padding:7px 14px;text-align:left">
         <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${(r.realm_name||r.realmId).replace(/"/g,'&quot;')}">${r.realm_name||r.realmId}</span>
+          <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${(r.realm_name||r.realmId).replace(/"/g,'&quot;')}">${r.realm_name||r.realmId}</span>
           <button onclick="openDrawer('${r.realmId}')" style="flex-shrink:0;font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:var(--p3-bg);color:var(--p3);font-weight:700;cursor:pointer;line-height:1.4">↗</button>
         </div>
       </td>
@@ -3077,6 +3121,10 @@ function renderOpsDailyDetail(data) {
       <td style="padding:7px 14px;text-align:right;font-weight:800;color:var(--p3)">${fmt(gtv)}</td>
       <td style="padding:7px 14px;text-align:right;color:var(--text-2)">${hasAvg ? fmt(avgDay) : '—'}</td>
       <td style="padding:7px 14px;text-align:right;font-weight:800;color:${pct>=100?'#15803D':pct>=50?'#C2410C':'#B91C1C'}">${hasAvg ? pct.toFixed(1)+'%' : '—'}</td>
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2);border-left:2px solid var(--border)">${lifeAvg > 0 ? fmt(lifeAvg) : '—'}</td>
+      <td style="padding:7px 14px;text-align:right;font-weight:700;color:var(--p3)">${fmt(mtdGtv)}</td>
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px">${hasMtd ? fmt(expMtd) : '—'}</td>
+      <td style="padding:7px 14px;text-align:right;font-weight:800;color:${mtdColor}">${hasMtd ? pctMtd.toFixed(1)+'%' : '—'}</td>
       <td style="padding:7px 14px">
         <span style="font-size:10px;font-weight:700;color:${statusColor}">${statusLabel}</span>
       </td>
