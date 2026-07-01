@@ -2219,9 +2219,17 @@ ORDER BY g.m0_gtv DESC`;
 // ── Aquisição helpers ──────────────────────────────────────
 let aqPeriodType = 'month'; // 'month' | 'quarter' | 'year'
 const _now = new Date();
-let aqSelectedYear  = _now.getFullYear();
-let aqSelectedMonth = _now.getMonth();       // 0-based (Jan=0)
-let aqSelectedQuarter = Math.floor(_now.getMonth() / 3); // 0-based (Q1=0)
+// If we're in the first 5 days of a new month, default to previous month
+// (current month has no data yet)
+const _aqInitMonth = _now.getDate() <= 5
+  ? (_now.getMonth() === 0 ? 11 : _now.getMonth() - 1)
+  : _now.getMonth();
+const _aqInitYear = _now.getDate() <= 5 && _now.getMonth() === 0
+  ? _now.getFullYear() - 1
+  : _now.getFullYear();
+let aqSelectedYear  = _aqInitYear;
+let aqSelectedMonth = _aqInitMonth;          // 0-based (Jan=0)
+let aqSelectedQuarter = Math.floor(_aqInitMonth / 3); // 0-based (Q1=0)
 let aqCanalFilter = 'all';
 
 // ── Date range ─────────────────────────────────────────────
