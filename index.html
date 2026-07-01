@@ -493,6 +493,12 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .view { display: none; }
 .view.active { display: block; }
 
+/* ─── SORTABLE HEADERS ───────────────────────────────────── */
+.th-sort { cursor:pointer; user-select:none; white-space:nowrap; }
+.th-sort:hover { color:var(--text) !important; }
+.th-sort .si { font-size:9px; margin-left:2px; opacity:.35; display:inline-block; }
+.th-sort.asc .si, .th-sort.desc .si { opacity:1; color:var(--p3); }
+
 /* ─── AQUISIÇÃO ─────────────────────────────────────────── */
 .aq-locked { display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:12px;color:var(--text-2); }
 .aq-locked-icon { font-size:48px; }
@@ -890,7 +896,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
             <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
               <div class="aq-detail-table-title">📋 Todos os clientes Inbound M0</div>
               <div style="max-height:520px;overflow-y:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <table id="aq-detail-sort-table" style="width:100%;border-collapse:collapse;font-size:12px">
                   <thead>
                     <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
@@ -911,9 +917,9 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 
             <!-- Daily comparison -->
             <div style="margin-top:18px;background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden" id="aq-daily-wrap">
-              <div class="aq-detail-table-title">📅 GTV de Ontem vs Expected Diário <span id="aq-daily-date" style="color:var(--text-2);font-weight:500;font-size:11px;margin-left:6px"></span></div>
+              <div class="aq-detail-table-title" id="aq-daily-title-wrap">📅 GTV de Ontem vs Expected Diário <span id="aq-daily-date" style="color:var(--text-2);font-weight:500;font-size:11px;margin-left:6px"></span></div>
               <div style="max-height:380px;overflow-y:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <table id="aq-daily-sort-table" style="width:100%;border-collapse:collapse;font-size:12px">
                   <thead>
                     <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
@@ -946,7 +952,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
             <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
               <div class="aq-detail-table-title">📋 Clientes que graduaram do M0 nos últimos 7 dias (GTV ≥ R$50K)</div>
               <div style="max-height:420px;overflow-y:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <table id="aq-handover-sort-table" style="width:100%;border-collapse:collapse;font-size:12px">
                   <thead>
                     <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
@@ -1036,7 +1042,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
             <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
               <div class="aq-detail-table-title">📋 Todos os clientes M1+ — GTV ontem vs média 30d</div>
               <div style="max-height:500px;overflow-y:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <table id="ops-daily-sort-table" style="width:100%;border-collapse:collapse;font-size:12px">
                   <thead>
                     <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
@@ -1073,7 +1079,7 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
             <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
               <div class="aq-detail-table-title">📋 Ranking de GTV — clientes M1+ no período</div>
               <div style="max-height:520px;overflow-y:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <table id="ops-detail-sort-table" style="width:100%;border-collapse:collapse;font-size:12px">
                   <thead>
                     <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
                       <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
@@ -1426,6 +1432,7 @@ function renderTable(key, rows) {
       <td><button class="btn-action" onclick="openDrawer('${r.realmId}')">Registrar →</button></td>`;
     tbody.appendChild(tr);
   });
+  makeTableSortable('table-' + key);
 }
 
 function renderTableAt(key, rows) {
@@ -1454,6 +1461,7 @@ function renderTableAt(key, rows) {
       <td><button class="btn-action" onclick="openDrawer('${r.realmId}')">Registrar →</button></td>`;
     tbody.appendChild(tr);
   });
+  makeTableSortable('table-' + key);
 }
 
 function filterCurrent(q) {
@@ -1972,6 +1980,7 @@ function renderTickets(rows) {
       <td><a class="tk-link" href="${atlasUrl}" target="_blank">Abrir →</a></td>`;
     tbody.appendChild(tr);
   });
+  makeTableSortable('table-tickets');
 }
 
 // ══ ATLAS BADGES (Atenção view: suporte vs churn silencioso) ══
@@ -2708,6 +2717,7 @@ function renderInboundDetail(data) {
       <td style="padding:7px 14px;text-align:center">${hasTicket ? `<span style="color:#C2410C;font-weight:700;font-size:11px">🎫 ${tickets}</span>` : `<span style="color:var(--text-2)">—</span>`}</td>
     </tr>`;
   }).join('');
+  makeTableSortable('aq-detail-sort-table');
 }
 
 function renderDailyDetail(data) {
@@ -2745,6 +2755,7 @@ function renderDailyDetail(data) {
       </td>
     </tr>`;
   }).join('');
+  makeTableSortable('aq-daily-sort-table');
 }
 
 // ══ OPS ══════════════════════════════════════════════════════
@@ -3018,6 +3029,7 @@ function renderOpsDetail(data) {
       <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px">${cumPct.toFixed(1)}%</td>
     </tr>`;
   }).join('');
+  makeTableSortable('ops-detail-sort-table');
 }
 
 function renderOpsDailyDetail(data) {
@@ -3070,6 +3082,7 @@ function renderOpsDailyDetail(data) {
       </td>
     </tr>`;
   }).join('');
+  makeTableSortable('ops-daily-sort-table');
 }
 
 async function loadOps(force) {
@@ -3108,6 +3121,60 @@ async function loadOps(force) {
     console.error('OPS detail error:', e);
     document.getElementById('ops-detail').style.display = 'none';
   }
+}
+
+// ══ TABLE SORT UTILITY ══════════════════════════════════════
+function parseTableValue(text) {
+  text = (text || '').trim();
+  if (text === '—' || text === '-' || text === '' || text === 'Sem Expected' || text === 'Sem histórico') return -Infinity;
+  if (text.startsWith('R$')) {
+    let num = text.replace('R$','').trim();
+    if (num.endsWith('M')) return parseFloat(num.replace(',','.').replace('M','')) * 1e6;
+    if (num.endsWith('K')) return parseFloat(num.replace(',','.').replace('K','')) * 1e3;
+    return parseFloat(num.replace(/\./g,'').replace(',','.').replace(/\s/g,''));
+  }
+  if (text.endsWith('%')) return parseFloat(text.replace('%','').replace(',','.'));
+  if (/^\d+d$/.test(text)) return parseFloat(text);
+  if (text.includes('/')) { const [a,b] = text.split('/'); const n = parseFloat(a)/parseFloat(b); return isNaN(n) ? text : n; }
+  const n = parseFloat(text.replace(',','.'));
+  if (!isNaN(n)) return n;
+  return text;
+}
+
+function makeTableSortable(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const ths = table.querySelectorAll('thead th');
+  ths.forEach((th, colIdx) => {
+    th.classList.add('th-sort');
+    if (!th.querySelector('.si')) {
+      const ic = document.createElement('span');
+      ic.className = 'si'; ic.textContent = '↕';
+      th.appendChild(ic);
+    }
+    th._sortDir = th._sortDir || 0;
+    th.onclick = () => {
+      const newDir = th._sortDir === 1 ? -1 : 1;
+      ths.forEach(h => {
+        h._sortDir = 0; h.classList.remove('asc','desc');
+        const ic = h.querySelector('.si'); if (ic) ic.textContent = '↕';
+      });
+      th._sortDir = newDir;
+      th.classList.add(newDir === 1 ? 'asc' : 'desc');
+      const ic = th.querySelector('.si'); if (ic) ic.textContent = newDir === 1 ? '↑' : '↓';
+      const tbody = table.querySelector('tbody');
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const at = a.cells[colIdx]?.textContent.trim() ?? '';
+        const bt = b.cells[colIdx]?.textContent.trim() ?? '';
+        const av = parseTableValue(at), bv = parseTableValue(bt);
+        if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * newDir;
+        return String(av).localeCompare(String(bv), 'pt-BR') * newDir;
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    };
+  });
 }
 
 function renderHandoverDetail(data) {
@@ -3149,6 +3216,7 @@ function renderHandoverDetail(data) {
       <td style="padding:7px 14px;text-align:right;font-weight:700;color:${daysInM1<=2?'#B91C1C':daysInM1<=5?'#C2410C':'#6B7280'}">${isNaN(daysInM1)?'—':daysInM1+'d'}</td>
     </tr>`;
   }).join('');
+  makeTableSortable('aq-handover-sort-table');
 }
 </script>
 </body>
