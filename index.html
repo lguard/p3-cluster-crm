@@ -513,6 +513,13 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
 .aq-quarter-grid { display:flex;gap:4px; }
 .aq-quarter-btn { font-size:11px;font-weight:800;padding:5px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);cursor:pointer;transition:all .15s; }
 .aq-quarter-btn.active { background:var(--p3);color:#fff;border-color:var(--p3); }
+/* ─── OPS (shares most aq-* styles) ──────────────────────── */
+.ops-period-tab { font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);cursor:pointer;transition:all .15s; }
+.ops-period-tab.active { background:var(--p3);color:#fff;border-color:var(--p3); }
+.ops-quarter-btn { font-size:11px;font-weight:800;padding:5px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);cursor:pointer;transition:all .15s; }
+.ops-quarter-btn.active { background:var(--p3);color:#fff;border-color:var(--p3); }
+.ops-cluster-btn { font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);cursor:pointer;transition:all .15s; }
+.ops-cluster-btn.active { background:var(--p3);color:#fff;border-color:var(--p3); }
 .aq-canal-pills { display:flex;align-items:center;gap:5px; }
 .aq-canal-sep { width:1px;height:22px;background:var(--border);margin:0 2px; }
 .aq-canal-btn { font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);cursor:pointer;transition:all .15s; }
@@ -643,6 +650,11 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         <span class="nav-icon">🚀</span>
         <span class="nav-label">Aquisição</span>
         <span class="nav-badge" id="nb-aq">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('ops')">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">OPS</span>
+        <span class="nav-badge" id="nb-ops">—</span>
       </div>
     </div>
 
@@ -954,6 +966,133 @@ body { font-family: var(--font); background: var(--p3-bg); color: var(--text); f
         </div>
       </div>
     </div>
+
+      <!-- OPS View -->
+      <div class="view" id="view-ops">
+        <div id="ops-locked-msg" class="aq-locked" style="display:none">
+          <div class="aq-locked-icon">🔒</div>
+          <div class="aq-locked-title">Acesso Restrito</div>
+          <div class="aq-locked-sub">Essa seção é exclusiva para OPS. Solicite acesso a luiz.guardieiro@portao3.com.br.</div>
+        </div>
+        <div id="ops-content" style="display:none">
+          <div class="aq-filters">
+            <div class="aq-filter-group">
+              <span class="aq-filter-label">Período</span>
+              <div class="aq-period-tabs">
+                <button class="ops-period-tab active" data-pt="month" onclick="setOpsPeriodType('month')">Mês</button>
+                <button class="ops-period-tab" data-pt="quarter" onclick="setOpsPeriodType('quarter')">Quarter</button>
+                <button class="ops-period-tab" data-pt="year" onclick="setOpsPeriodType('year')">Ano</button>
+              </div>
+            </div>
+            <div class="aq-filter-group">
+              <span class="aq-filter-label">Ano</span>
+              <select class="aq-year-select" id="ops-year-select" onchange="setOpsYear(parseInt(this.value))"></select>
+            </div>
+            <div class="aq-filter-group" id="ops-month-picker">
+              <span class="aq-filter-label">Mês</span>
+              <div class="aq-month-grid" id="ops-month-grid"></div>
+            </div>
+            <div class="aq-filter-group" id="ops-quarter-picker" style="display:none">
+              <span class="aq-filter-label">Quarter</span>
+              <div class="aq-quarter-grid">
+                <button class="ops-quarter-btn" data-q="0" onclick="setOpsQuarter(0)">Q1</button>
+                <button class="ops-quarter-btn" data-q="1" onclick="setOpsQuarter(1)">Q2</button>
+                <button class="ops-quarter-btn" data-q="2" onclick="setOpsQuarter(2)">Q3</button>
+                <button class="ops-quarter-btn" data-q="3" onclick="setOpsQuarter(3)">Q4</button>
+              </div>
+            </div>
+            <div class="aq-canal-sep" style="height:30px"></div>
+            <div class="aq-filter-group">
+              <span class="aq-filter-label">Cluster</span>
+              <div class="aq-canal-pills">
+                <button class="ops-cluster-btn active" data-cl="all" onclick="setOpsCluster('all')">Todos</button>
+                <button class="ops-cluster-btn" data-cl="M1" onclick="setOpsCluster('M1')">M1</button>
+                <button class="ops-cluster-btn" data-cl="M2" onclick="setOpsCluster('M2')">M2</button>
+                <button class="ops-cluster-btn" data-cl="M3+" onclick="setOpsCluster('M3+')">M3+</button>
+              </div>
+            </div>
+            <button class="tasks-refresh" onclick="loadOps(true)" style="margin-left:auto;align-self:flex-end">↺ Atualizar</button>
+          </div>
+          <!-- Cluster panels -->
+          <div class="aq-funnels" id="ops-funnels">
+            <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-2);font-size:13px">Clique em Atualizar para carregar os dados.</div>
+          </div>
+          <!-- Daily section (always-current, not period-filtered) -->
+          <div class="aq-detail" id="ops-daily-wrap" style="display:none">
+            <div class="aq-detail-title">📅 GTV de Ontem vs Média Diária (30d) <span id="ops-daily-date" style="color:var(--text-2);font-weight:500;font-size:11px;margin-left:6px"></span></div>
+            <div class="aq-detail-kpi-row">
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">Clientes ativos ontem</div>
+                <div class="aq-detail-kpi-val" id="ops-daily-count">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">GTV total ontem</div>
+                <div class="aq-detail-kpi-val" id="ops-daily-gtv">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">No ritmo (≥100%)</div>
+                <div class="aq-detail-kpi-val" id="ops-daily-ok">—</div>
+              </div>
+            </div>
+            <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div class="aq-detail-table-title">📋 Todos os clientes M1+ — GTV ontem vs média 30d</div>
+              <div style="max-height:500px;overflow-y:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                  <thead>
+                    <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Cliente</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:center;border-bottom:1px solid var(--border)">Cluster</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">GTV Ontem</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">Média/dia (30d)</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Realizado</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ops-daily-table"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- Period detail table -->
+          <div class="aq-detail" id="ops-detail" style="display:none">
+            <div class="aq-detail-title">📋 Clientes Ativos no Período</div>
+            <div class="aq-detail-kpi-row">
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">Total Clientes</div>
+                <div class="aq-detail-kpi-val" id="ops-total-clients">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">GTV Total</div>
+                <div class="aq-detail-kpi-val" id="ops-total-gtv">—</div>
+              </div>
+              <div class="aq-detail-kpi">
+                <div class="aq-detail-kpi-label">Média por Cliente</div>
+                <div class="aq-detail-kpi-val" id="ops-avg-gtv">—</div>
+              </div>
+            </div>
+            <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div class="aq-detail-table-title">📋 Ranking de GTV — clientes M1+ no período</div>
+              <div style="max-height:520px;overflow-y:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                  <thead>
+                    <tr style="background:var(--p3-bg);position:sticky;top:0;z-index:1">
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">#</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)">Cliente</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:center;border-bottom:1px solid var(--border)">Cluster</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">GTV Período</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Total</th>
+                      <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);padding:8px 14px;text-align:right;border-bottom:1px solid var(--border)">% Acum.</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ops-clients-table"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1062,6 +1201,7 @@ const VIEW_META = {
   followup: { title: 'Follow up',  sub: 'Média 6m vs último mês · Maior delta = maior prioridade' },
   tickets:  { title: 'Tickets',    sub: 'Conversas Atlas abertas de clientes HT e MT · Mais antigos primeiro' },
   aq:       { title: 'Aquisição',  sub: 'Funis Inbound · Outbound · Parceiros — MTD' },
+  ops:      { title: 'OPS',        sub: 'Performance operacional — Clientes M1, M2 e M3+' },
 };
 
 // ══ AUTH ══════════════════════════════════════════════════
@@ -1347,13 +1487,19 @@ function switchView(view) {
   if (view==='tickets'  && !ticketsLoaded)          loadTickets(false);
   if ((view==='ht'||view==='mt') && ticketsLoaded)  applyTicketBadges();
   if ((view==='ht'||view==='mt') && !ticketsLoaded) loadTickets(false);
-  // hide summary bar on Aquisição view
-  document.getElementById('metrics-row').style.display = view === 'aq' ? 'none' : '';
+  // hide summary bar on Aquisição / OPS view
+  document.getElementById('metrics-row').style.display = (view === 'aq' || view === 'ops') ? 'none' : '';
   if (view==='aq') {
     const allowed = AQUISICAO_ALLOWED.includes(state.user?.email);
     document.getElementById('aq-locked-msg').style.display = allowed ? 'none' : 'flex';
     document.getElementById('aq-content').style.display = allowed ? 'block' : 'none';
     if (allowed && !aqLoaded) loadAquisicao(false);
+  }
+  if (view==='ops') {
+    const allowed = OPS_ALLOWED.includes(state.user?.email);
+    document.getElementById('ops-locked-msg').style.display = allowed ? 'none' : 'flex';
+    document.getElementById('ops-content').style.display = allowed ? 'block' : 'none';
+    if (allowed && !opsLoaded) loadOps(false);
   }
 }
 
@@ -1365,7 +1511,10 @@ function openDrawer(realmId) {
          || followupClients.find(x=>x.realmId===realmId)
          || (()=>{
               const aq = aqInboundData.find(x=>x.realmId===realmId);
-              return aq ? {realmId: aq.realmId, name: aq.clientName, cluster:'Inbound', avgMonthlyGtv: aq.m0_gtv} : null;
+              if (aq) return {realmId: aq.realmId, realmName: aq.clientName, cluster:'Inbound', avg_monthly_gtv: aq.m0_gtv, total_gtv_6m: aq.m0_gtv};
+              const op = opsDetailData.find(x=>x.realmId===realmId) || opsDailyData.find(x=>x.realmId===realmId);
+              if (op) return {realmId: op.realmId, realmName: op.realm_name, cluster: op.cluster||'M1+', avg_monthly_gtv: op.period_gtv||op.yesterday_gtv||0, total_gtv_6m: op.period_gtv||op.yesterday_gtv||0};
+              return null;
             })();
   if (!c) return;
   state.drawerClient = c;
@@ -2597,6 +2746,369 @@ function renderDailyDetail(data) {
       </td>
     </tr>`;
   }).join('');
+}
+
+// ══ OPS ══════════════════════════════════════════════════════
+const OPS_ALLOWED = ['luiz.guardieiro@portao3.com.br', 'matheus.mota@portao3.com.br', 'marcos.dantas@portao3.com.br'];
+let opsLoaded = false;
+let opsDetailData = [];
+let opsDailyData  = [];
+let opsClusterFilter = 'all';
+
+let opsPeriodType    = 'month';
+let opsSelectedYear  = _aqInitYear;
+let opsSelectedMonth = _aqInitMonth;
+let opsSelectedQuarter = Math.floor(_aqInitMonth / 3);
+
+// ── Date helpers (same pattern as aq) ─────────────────────
+function opsGetRange() {
+  const y = opsSelectedYear;
+  if (opsPeriodType === 'year') return { start:`${y}-01-01`, end:`${y}-12-31` };
+  if (opsPeriodType === 'quarter') {
+    const qm = opsSelectedQuarter * 3;
+    const sm = String(qm+1).padStart(2,'0'), em = String(qm+3).padStart(2,'0');
+    const lastDay = new Date(y, qm+3, 0).getDate();
+    return { start:`${y}-${sm}-01`, end:`${y}-${em}-${String(lastDay).padStart(2,'0')}` };
+  } else {
+    const m = String(opsSelectedMonth+1).padStart(2,'0');
+    const lastDay = new Date(y, opsSelectedMonth+1, 0).getDate();
+    return { start:`${y}-${m}-01`, end:`${y}-${m}-${String(lastDay).padStart(2,'0')}` };
+  }
+}
+function opsIsCurrentPeriod() {
+  const n = new Date();
+  if (opsSelectedYear !== n.getFullYear()) return false;
+  if (opsPeriodType === 'year') return true;
+  if (opsPeriodType === 'quarter') return opsSelectedQuarter === Math.floor(n.getMonth()/3);
+  return opsSelectedMonth === n.getMonth();
+}
+function opsStartSQL() {
+  if (opsIsCurrentPeriod() && opsPeriodType === 'month') return 'DATE_TRUNC(CURRENT_DATE(), MONTH)';
+  return `DATE '${opsGetRange().start}'`;
+}
+function opsEndSQL() {
+  if (opsIsCurrentPeriod() && opsPeriodType === 'month') return 'DATE_ADD(DATE_TRUNC(CURRENT_DATE(), MONTH), INTERVAL 1 MONTH)';
+  const { end } = opsGetRange();
+  const d = new Date(end + 'T12:00:00'); d.setDate(d.getDate()+1);
+  return `DATE '${d.toISOString().slice(0,10)}'`;
+}
+
+// ── UI ─────────────────────────────────────────────────────
+function opsRenderFilterUI() {
+  const sel = document.getElementById('ops-year-select');
+  if (sel) {
+    sel.innerHTML = '';
+    const curY = new Date().getFullYear();
+    for (let y = curY; y >= 2023; y--) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if (y === opsSelectedYear) o.selected = true;
+      sel.appendChild(o);
+    }
+  }
+  document.querySelectorAll('.ops-period-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.pt === opsPeriodType));
+  const mp = document.getElementById('ops-month-picker');
+  const qp = document.getElementById('ops-quarter-picker');
+  if (mp) mp.style.display = opsPeriodType === 'month' ? '' : 'none';
+  if (qp) qp.style.display = opsPeriodType === 'quarter' ? '' : 'none';
+  const grid = document.getElementById('ops-month-grid');
+  if (grid) {
+    const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const curY = new Date().getFullYear(), curM = new Date().getMonth();
+    grid.innerHTML = months.map((lbl, i) => {
+      const isFuture = opsSelectedYear > curY || (opsSelectedYear === curY && i > curM);
+      return `<button class="aq-month-cell${opsSelectedMonth===i?' active':''}"
+        ${isFuture ? 'disabled' : ''}
+        onclick="setOpsMonth(${i})">${lbl}</button>`;
+    }).join('');
+  }
+  document.querySelectorAll('.ops-quarter-btn').forEach(b =>
+    b.classList.toggle('active', parseInt(b.dataset.q) === opsSelectedQuarter));
+}
+
+// ── Setters ─────────────────────────────────────────────────
+function setOpsPeriodType(type) {
+  opsPeriodType = type; opsRenderFilterUI(); opsLoaded = false; opsDetailData = []; loadOps(true);
+}
+function setOpsYear(y) {
+  opsSelectedYear = y;
+  const n = new Date();
+  if (y === n.getFullYear()) {
+    opsSelectedMonth  = Math.min(opsSelectedMonth, n.getMonth());
+    opsSelectedQuarter = Math.min(opsSelectedQuarter, Math.floor(n.getMonth()/3));
+  }
+  opsRenderFilterUI(); opsLoaded = false; opsDetailData = []; loadOps(true);
+}
+function setOpsMonth(m) {
+  opsSelectedMonth = m; opsRenderFilterUI(); opsLoaded = false; opsDetailData = []; loadOps(true);
+}
+function setOpsQuarter(q) {
+  opsSelectedQuarter = q; opsRenderFilterUI(); opsLoaded = false; opsDetailData = []; loadOps(true);
+}
+function setOpsCluster(cl) {
+  opsClusterFilter = cl;
+  document.querySelectorAll('.ops-cluster-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.cl === cl));
+  document.querySelectorAll('.ops-panel').forEach(p => {
+    p.style.display = (cl === 'all' || cl === p.dataset.cluster) ? '' : 'none';
+  });
+  if (opsDetailData.length) renderOpsDetail(opsDetailData);
+  if (opsDailyData.length)  renderOpsDailyDetail(opsDailyData);
+}
+
+// ── Queries ─────────────────────────────────────────────────
+function buildOpsSummaryQuery() {
+  const start = opsStartSQL(), end = opsEndSQL();
+  return `
+SELECT transactionCluster AS cluster,
+  COUNT(DISTINCT realmId) AS n_clients,
+  ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS total_gtv
+FROM \`p3-data-lake.consolidado.transactions\`
+WHERE isValidTransaction=TRUE AND billingCurrency=986
+  AND transactionCluster IN ('M1','M2','M3+')
+  AND DATE(effectiveAt) >= ${start}
+  AND DATE(effectiveAt) < ${end}
+GROUP BY 1
+ORDER BY 1`;
+}
+
+function buildOpsDetailQuery() {
+  const start = opsStartSQL(), end = opsEndSQL();
+  return `
+WITH txns AS (
+  SELECT realmId, ANY_VALUE(realmName) AS realm_name,
+    ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS period_gtv
+  FROM \`p3-data-lake.consolidado.transactions\`
+  WHERE isValidTransaction=TRUE AND billingCurrency=986
+    AND transactionCluster IN ('M1','M2','M3+')
+    AND DATE(effectiveAt) >= ${start}
+    AND DATE(effectiveAt) < ${end}
+  GROUP BY 1
+),
+lc AS (
+  SELECT realmId, transactionCluster AS cluster
+  FROM (
+    SELECT realmId, transactionCluster,
+      ROW_NUMBER() OVER (PARTITION BY realmId ORDER BY effectiveAt DESC) AS rn
+    FROM \`p3-data-lake.consolidado.transactions\`
+    WHERE isValidTransaction=TRUE AND billingCurrency=986
+      AND transactionCluster IN ('M1','M2','M3+')
+  ) WHERE rn = 1
+)
+SELECT t.realmId, t.realm_name, COALESCE(lc.cluster,'M1+') AS cluster, t.period_gtv
+FROM txns t
+LEFT JOIN lc ON lc.realmId = t.realmId
+ORDER BY t.period_gtv DESC
+LIMIT 300`;
+}
+
+const OPS_DAILY_QUERY = `
+WITH yesterday AS (
+  SELECT realmId, ANY_VALUE(realmName) AS realm_name,
+    ANY_VALUE(transactionCluster) AS cluster,
+    ROUND(SUM(billingAmountAuthorizedImpact)/100.0, 0) AS yesterday_gtv
+  FROM \`p3-data-lake.consolidado.transactions\`
+  WHERE isValidTransaction=TRUE AND billingCurrency=986
+    AND transactionCluster IN ('M1','M2','M3+')
+    AND DATE(effectiveAt) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+  GROUP BY 1
+),
+avg_30d AS (
+  SELECT realmId,
+    ROUND(SUM(billingAmountAuthorizedImpact)/100.0 / 30.0, 0) AS avg_daily_gtv
+  FROM \`p3-data-lake.consolidado.transactions\`
+  WHERE isValidTransaction=TRUE AND billingCurrency=986
+    AND transactionCluster IN ('M1','M2','M3+')
+    AND DATE(effectiveAt) >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+    AND DATE(effectiveAt) < CURRENT_DATE()
+  GROUP BY 1
+)
+SELECT y.realmId, y.realm_name, y.cluster, y.yesterday_gtv,
+  COALESCE(a.avg_daily_gtv, 0) AS avg_daily_gtv,
+  ROUND(SAFE_DIVIDE(y.yesterday_gtv, COALESCE(a.avg_daily_gtv, 0)) * 100, 1) AS pct_of_avg
+FROM yesterday y
+LEFT JOIN avg_30d a ON a.realmId = y.realmId
+ORDER BY y.yesterday_gtv DESC`;
+
+// ── Render ──────────────────────────────────────────────────
+function renderOpsPanels(summary) {
+  const clusters = ['M1','M2','M3+'];
+  const icons  = {'M1':'🟡','M2':'🟠','M3+':'🟢'};
+  const labels = {'M1':'30–59 dias de vida','M2':'60–89 dias de vida','M3+':'90+ dias de vida'};
+  const clColors = {'M1':'#C2410C','M2':'#7C3AED','M3+':'#15803D'};
+  const summaryMap = {};
+  summary.forEach(r => summaryMap[r.cluster] = r);
+
+  const el = document.getElementById('ops-funnels');
+  el.innerHTML = '';
+
+  let totalClients = 0, totalGTV = 0;
+  clusters.forEach(cl => {
+    const s = summaryMap[cl] || {n_clients:0, total_gtv:0};
+    const n   = parseInt(s.n_clients)||0;
+    const gtv = parseFloat(s.total_gtv)||0;
+    totalClients += n; totalGTV += gtv;
+    const avg = n > 0 ? Math.round(gtv / n) : 0;
+
+    const panel = document.createElement('div');
+    panel.className = 'aq-panel ops-panel';
+    panel.dataset.cluster = cl;
+
+    panel.innerHTML = `
+      <div class="aq-panel-header" style="border-left:3px solid ${clColors[cl]}">
+        <div class="aq-panel-title">${icons[cl]} ${cl}</div>
+        <div class="aq-panel-sub">${labels[cl]}</div>
+      </div>
+      <div class="aq-kpis">
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">Clientes Ativos</div>
+          <div class="aq-kpi-val blue">${n}</div>
+        </div>
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">GTV Total</div>
+          <div class="aq-kpi-val" style="font-size:15px;color:${clColors[cl]}">${fmt(gtv)}</div>
+        </div>
+        <div class="aq-kpi">
+          <div class="aq-kpi-label">Média/Cliente</div>
+          <div class="aq-kpi-val" style="font-size:14px">${n > 0 ? fmt(avg) : '—'}</div>
+        </div>
+      </div>`;
+
+    el.appendChild(panel);
+  });
+
+  document.getElementById('nb-ops').textContent = totalClients;
+}
+
+function renderOpsDetail(data) {
+  const detail = document.getElementById('ops-detail');
+  if (!data || !data.length) { detail.style.display = 'none'; return; }
+  detail.style.display = 'block';
+
+  const filtered = opsClusterFilter === 'all' ? data : data.filter(r => r.cluster === opsClusterFilter);
+  const totalGTV = filtered.reduce((s,r) => s + (parseFloat(r.period_gtv)||0), 0);
+  const n = filtered.length;
+
+  document.getElementById('ops-total-clients').textContent = n;
+  document.getElementById('ops-total-gtv').textContent     = fmt(totalGTV);
+  document.getElementById('ops-avg-gtv').textContent       = n > 0 ? fmt(Math.round(totalGTV / n)) : '—';
+
+  const clColors = {'M1':'#C2410C','M2':'#7C3AED','M3+':'#15803D'};
+  let cumPct = 0;
+  const tbody = document.getElementById('ops-clients-table');
+  tbody.innerHTML = filtered.map((r, idx) => {
+    const gtv = parseFloat(r.period_gtv)||0;
+    const pct = totalGTV > 0 ? (gtv/totalGTV*100) : 0;
+    cumPct += pct;
+    const cl = r.cluster || 'M1+';
+    const clColor = clColors[cl] || '#6B7280';
+    return `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px;font-weight:700;min-width:30px">${idx+1}</td>
+      <td style="padding:7px 14px;text-align:left">
+        <div style="display:flex;align-items:center;gap:5px;min-width:0">
+          <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;font-weight:600" title="${(r.realm_name||r.realmId).replace(/"/g,'&quot;')}">${r.realm_name||r.realmId}</span>
+          <button onclick="openDrawer('${r.realmId}')" style="flex-shrink:0;font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:var(--p3-bg);color:var(--p3);font-weight:700;cursor:pointer;line-height:1.4">↗</button>
+        </div>
+      </td>
+      <td style="padding:7px 14px;text-align:center">
+        <span style="font-size:10px;font-weight:800;color:${clColor};background:${clColor}18;padding:2px 8px;border-radius:10px">${cl}</span>
+      </td>
+      <td style="padding:7px 14px;text-align:right;font-weight:800;color:var(--p3)">${fmt(gtv)}</td>
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2)">${pct.toFixed(1)}%</td>
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px">${cumPct.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderOpsDailyDetail(data) {
+  const wrap = document.getElementById('ops-daily-wrap');
+  if (!wrap) return;
+  const filtered = opsClusterFilter === 'all' ? data : data.filter(r => r.cluster === opsClusterFilter);
+  if (!filtered || !filtered.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  const lbl = document.getElementById('ops-daily-date');
+  if (lbl) lbl.textContent = '— ' + yest.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'});
+
+  const totalYestGTV  = filtered.reduce((s,r) => s+(parseFloat(r.yesterday_gtv)||0), 0);
+  const onRhythm      = filtered.filter(r => (parseFloat(r.pct_of_avg)||0) >= 100).length;
+  document.getElementById('ops-daily-count').textContent = filtered.length;
+  document.getElementById('ops-daily-gtv').textContent   = fmt(totalYestGTV);
+  document.getElementById('ops-daily-ok').textContent    = onRhythm;
+
+  const clColors = {'M1':'#C2410C','M2':'#7C3AED','M3+':'#15803D'};
+  const tbody = document.getElementById('ops-daily-table');
+  tbody.innerHTML = filtered.map((r, idx) => {
+    const gtv    = parseFloat(r.yesterday_gtv)||0;
+    const avgDay = parseFloat(r.avg_daily_gtv)||0;
+    const pct    = parseFloat(r.pct_of_avg)||0;
+    const hasAvg = avgDay > 0;
+    const cl     = r.cluster || 'M1+';
+    const clColor = clColors[cl] || '#6B7280';
+    let statusLabel, statusColor;
+    if (!hasAvg)       { statusLabel='Sem histórico'; statusColor='#9CA3AF'; }
+    else if (pct>=100) { statusLabel='✅ No ritmo';   statusColor='#15803D'; }
+    else if (pct>=50)  { statusLabel='⚠ Abaixo';     statusColor='#C2410C'; }
+    else               { statusLabel='🔴 Baixo';      statusColor='#B91C1C'; }
+    return `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2);font-size:11px;font-weight:700">${idx+1}</td>
+      <td style="padding:7px 14px;text-align:left">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${(r.realm_name||r.realmId).replace(/"/g,'&quot;')}">${r.realm_name||r.realmId}</span>
+          <button onclick="openDrawer('${r.realmId}')" style="flex-shrink:0;font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:var(--p3-bg);color:var(--p3);font-weight:700;cursor:pointer;line-height:1.4">↗</button>
+        </div>
+      </td>
+      <td style="padding:7px 14px;text-align:center">
+        <span style="font-size:10px;font-weight:800;color:${clColor};background:${clColor}18;padding:2px 8px;border-radius:10px">${cl}</span>
+      </td>
+      <td style="padding:7px 14px;text-align:right;font-weight:800;color:var(--p3)">${fmt(gtv)}</td>
+      <td style="padding:7px 14px;text-align:right;color:var(--text-2)">${hasAvg ? fmt(avgDay) : '—'}</td>
+      <td style="padding:7px 14px;text-align:right;font-weight:800;color:${pct>=100?'#15803D':pct>=50?'#C2410C':'#B91C1C'}">${hasAvg ? pct.toFixed(1)+'%' : '—'}</td>
+      <td style="padding:7px 14px">
+        <span style="font-size:10px;font-weight:700;color:${statusColor}">${statusLabel}</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadOps(force) {
+  if (opsLoaded && !force) return;
+  const el = document.getElementById('ops-funnels');
+  el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-2);font-size:13px">Carregando dados OPS…</div>';
+  opsRenderFilterUI();
+
+  // Phase 1 — cluster summary panels
+  try {
+    const summary = await bqQuery(buildOpsSummaryQuery());
+    opsLoaded = true;
+    renderOpsPanels(summary);
+    document.querySelectorAll('.ops-panel').forEach(p => {
+      p.style.display = (opsClusterFilter === 'all' || opsClusterFilter === p.dataset.cluster) ? '' : 'none';
+    });
+  } catch(e) {
+    el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);font-size:13px">Erro: ${e.message}</div>`;
+    return;
+  }
+
+  // Phase 2 — daily comparison (always-current)
+  try {
+    opsDailyData = await bqQuery(OPS_DAILY_QUERY);
+    renderOpsDailyDetail(opsDailyData);
+  } catch(e) {
+    console.error('OPS daily error:', e);
+    const w = document.getElementById('ops-daily-wrap'); if (w) w.style.display = 'none';
+  }
+
+  // Phase 3 — period detail table
+  try {
+    opsDetailData = await bqQuery(buildOpsDetailQuery());
+    renderOpsDetail(opsDetailData);
+  } catch(e) {
+    console.error('OPS detail error:', e);
+    document.getElementById('ops-detail').style.display = 'none';
+  }
 }
 
 function renderHandoverDetail(data) {
